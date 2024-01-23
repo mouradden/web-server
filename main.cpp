@@ -26,7 +26,7 @@ int main()
         std::cerr << "Error creating socket\n";
         return EXIT_FAILURE;
     }
-    
+    std::cout << "[INFO] Socket successfully created" << std::endl;
 
     // associates the socket with the address and port
     sockaddr_in serverAddress;
@@ -42,7 +42,7 @@ int main()
         close(serverSocket);
         return EXIT_FAILURE;
     }
-
+    std::cout << "[INFO] Socket successfully binded with 127.0.0.1:8080"  << std::endl;
     // putting the server socket into the listening state
     if (listen(serverSocket, 5) == -1)
     {
@@ -50,45 +50,45 @@ int main()
         // close(serverSocket);
         // return EXIT_FAILURE;
     }
-    std::cout << "Server listening on port " << 8080 << std::endl;
+    std::cout << "[INFO] Server listening on port " << 8080 << std::endl;
 
-    fd_set master_set, read_set;
-FD_ZERO(&master_set);
-FD_SET(serverSocket, &master_set);
+    fd_set setOfFds, readSet;
+    FD_ZERO(&setOfFds);
+    FD_SET(serverSocket, &setOfFds);
 
-int max_fd = serverSocket;
+    int max_fd = serverSocket;
 
-while (true) 
-{
-    read_set = master_set;
+    while (true) 
+    {
+        readSet = setOfFds;
 
-    if (select(max_fd + 1, &read_set, NULL, NULL, NULL) == -1) {
-        perror("select");
-        exit(4);
-    }
-
+        if (select(max_fd + 1, &readSet, NULL, NULL, NULL) == -1) {
+            std::cerr << "select";
+            exit(4);
+        }
     for(int fd = 0; fd <= max_fd; fd++)
     {
-        if (FD_ISSET(fd, &read_set)) // fd is ready for reading
+        if (FD_ISSET(fd, &readSet)) // fd is ready for reading
         {
             if (fd == serverSocket) // request for new connection
             {
                 // handle new connections
                 sockaddr_in clientAddress;
                 socklen_t clientAddressSize = sizeof(clientAddress);
-                int clientSocket = accept(serverSocket, reinterpret_cast<sockaddr*>(&clientAddress), &clientAddressSize);
+                int clientSocket = accept(serverSocket, reinterpret_cast<sockaddr*>(&clientAddress), &clientAddressSize); // return the new socket fd for the incoming client connection
 
                 if (clientSocket == -1)
                 {
-                    perror("accept");
-                } else
+                    std::cerr << "accept";
+                }
+                else
                 {
-                    FD_SET(clientSocket, &master_set); // add to master set
-                    if (clientSocket > max_fd)
-                    {    // keep track of the max
+                    FD_SET(clientSocket, &setOfFds); // add to global set
+                    if (clientSocket > max_fd)   // update the max
+                    {
                         max_fd = clientSocket;
                     }
-                    printf("New connection from %s on socket %d\n", inet_ntoa(clientAddress.sin_addr), clientSocket);
+                    std::cout << "New connection from " << inet_ntoa(clientAddress.sin_addr) << "on socket " << clientSocket << "\n"  ;
                 }
             }
             else
@@ -102,14 +102,14 @@ while (true)
                     // got error or connection closed by client
                     if (nbytes == 0) {
                         // connection closed
-                        printf("Socket %d hung up\n", fd);
+                        std::cout << "Socket " << fd << " hung up\n";
                     } 
                     else
                     {
-                        perror("recv");
+                        std::cerr << "recv";
                     }
                     close(fd); // bye!
-                    FD_CLR(fd, &master_set); // remove from master set
+                    FD_CLR(fd, &setOfFds); // remove from master set
                 }
                 else 
                 {
