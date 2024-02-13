@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include <vector>
+#include "Request.hpp"
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
@@ -57,18 +58,16 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
-                        std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
+                        // std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
                         // example how to handle a request
-                        std::string request(buffer);
-                        std::string method = request.substr(0, request.find(" "));
-                        std::cout << "HTTP method: " << method << std::endl;
-                        if (method == "GET")
+                        // std::string request(buffer);
+                        // std::string method = request.substr(0, request.find(" "));
+                        // std::cout << "HTTP method: " << method << std::endl;
+                        Request req(buffer);
+                        if (req.getRequestMethod() == "GET")
                         {
-                            size_t firstSpace = request.find(" ");
-                            size_t secondSpace = request.find(" ", firstSpace + 1);
-                            std::string target = request.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-                            std::cout << "---------->|" << target << "|\n";
-                            if (target == "/")
+                            
+                            if (req.getRequestRessource() == "/")
                             {
                                 std::ostringstream ss;
                                 std::ifstream file("index.html");

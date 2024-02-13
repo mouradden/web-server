@@ -1,5 +1,6 @@
 #include "Server.hpp"
 
+
 void Server::createSocket()
 {
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
