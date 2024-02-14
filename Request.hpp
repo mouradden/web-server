@@ -22,4 +22,5 @@ class Request {
         std::string getHttpVersion() const;
         std::string getHeader(std::string key) const;
         std::string getBody() const;
+        void printHeaders();
 };

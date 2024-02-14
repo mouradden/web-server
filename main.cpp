@@ -66,7 +66,6 @@ int main()
                         Request req(buffer);
                         if (req.getRequestMethod() == "GET")
                         {
-                            
                             if (req.getRequestRessource() == "/")
                             {
                                 std::ostringstream ss;
@@ -85,6 +84,9 @@ int main()
                                 // Send the HTTP response
                                 send(*it, response.str().c_str(), response.str().size(), 0);
                                 // close(*it);
+                            } else {
+                                std::ostringstream response;
+                                response << "HTTP1.1 404 Failed\r\n\r\n";
                             }
                         }
                     }

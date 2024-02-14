@@ -20,14 +20,14 @@ void Request::parseRequestLine(std::string buffer) {
 
 void Request::parseHeaders(std::string buffer) {
     std::stringstream requestLine(buffer);
-    std::vector<std::string> tokens;
-    std::string token;
+    std::string key;
+    std::string value;
 
-    std::getline(requestLine, token, ':');
-    tokens.push_back(token);
-    std::getline(requestLine, token, ':');
-    tokens.push_back(token);
-    this->headers[tokens[0]] = this->headers[tokens[1]];
+    std::getline(requestLine, key, ':');
+    std::getline(requestLine, value, ':');
+    if (value[0] == ' ')
+        value = value.substr(1);
+    this->headers[key] = value;
 }
 
 void Request::parseRequest(std::string buffer, std::string delim) {
@@ -46,7 +46,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     if (!buffer.empty()) {
         body = buffer;
     }
-    for (size_t i = 0; i < values.size(); i++) {
+    for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
         if (i == 0) {
             parseRequestLine(values[i]);
         } else {
@@ -57,10 +57,6 @@ void Request::parseRequest(std::string buffer, std::string delim) {
 
 Request::Request(std::string buffer) {
     parseRequest(buffer, "\r\n");
-    std::cout << requestMethod << std::endl;
-    std::cout << requestRessource << std::endl;
-    std::cout << httpVersion << std::endl;
-    std::cout << body << std::endl;
 }
 
 Request::~Request() {
@@ -100,4 +96,10 @@ std::string Request::getHeader(std::string key) const {
 
 std::string Request::getBody() const {
     return (this->body);
+}
+
+void    Request::printHeaders() {
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
+        std::cout << it->first << " " << it->second << std::endl;
+    }
 }
