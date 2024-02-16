@@ -17,8 +17,9 @@ int main()
     server.putServerOnListening();
 
     std::vector<int> activeConnections;
-    fd_set setOfFds, readSet;
+    fd_set setOfFds, readSet, writeSet;
     FD_ZERO(&setOfFds);
+    FD_ZERO(&writeSet);
     FD_SET(server.getServerSocket(), &setOfFds);
     int max_fd = server.getServerSocket();
  
@@ -26,8 +27,8 @@ int main()
     while (true) 
     {
         readSet = setOfFds;
-
-        if (select(max_fd + 1, &readSet, NULL, NULL, NULL) == -1)
+        writeSet = setOfFds;
+        if (select(max_fd + 1, &readSet, &writeSet, NULL, NULL) == -1)
         {
             std::cerr << "Error in select\n";
             return 1;
@@ -48,17 +49,20 @@ int main()
                 FD_SET(clientSocket, &setOfFds);
             }
         }
-            for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); ++it)
+        char buffer[4096];
+        for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); ++it)
+        {
+            if (FD_ISSET(*it, &readSet))
             {
-                if (FD_ISSET(*it, &readSet))
+                memset(buffer, 0, 4096);
+                ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
+                buffer[bytesRead] = '\0';
+                if (bytesRead > 0)
                 {
-                    char buffer[4096];
-                    memset(buffer, 0, 4096);
-                    ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
-                    if (bytesRead > 0)
+                    std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
+                    // example how to handle a request
+                    if (FD_ISSET(*it, &writeSet))
                     {
-                        std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
-                        // example how to handle a request
                         std::string request(buffer);
                         std::string method = request.substr(0, request.find(" "));
                         std::cout << "HTTP method: " << method << std::endl;
@@ -68,8 +72,9 @@ int main()
                             size_t secondSpace = request.find(" ", firstSpace + 1);
                             std::string target = request.substr(firstSpace + 1, secondSpace - firstSpace - 1);
                             std::cout << "---------->|" << target << "|\n";
-                            if (target == "/")
+                            if (target == "/home")
                             {
+                                std::cout << "===================>" << *it << " is ready to write\n";
                                 std::ostringstream ss;
                                 std::ifstream file("index.html");
                                 if (!file)
@@ -89,23 +94,24 @@ int main()
                             }
                         }
                     }
-                    else if (bytesRead == 0)
-                    {
-                        // Connection closed by the client
-                        std::cout << "Client disconnected, socket: " << *it << "\n";
-                        close(*it);
-                        FD_CLR(*it, &setOfFds);
-                        it = activeConnections.erase(it) - 1; // Decrement iterator to avoid skipping the next element
-                    }
-                    else
-                    {
-                        // Error in recv
-                        std::cerr << "Error receiving data from client, socket: " << *it << "\n";
-                        close(*it);
-                        FD_CLR(*it, &setOfFds);
-                        it = activeConnections.erase(it) - 1;
-                    }
+                }
+                else if (bytesRead == 0)
+                {
+                    // Connection closed by the client
+                    std::cout << "Client disconnected, socket: " << *it << "\n";
+                    close(*it);
+                    FD_CLR(*it, &setOfFds);
+                    it = activeConnections.erase(it) - 1; // Decrement iterator to avoid skipping the next element
+                }
+                else
+                {
+                    // Error in recv
+                    std::cerr << "Error receiving data from client, socket: " << *it << "\n";
+                    close(*it);
+                    FD_CLR(*it, &setOfFds);
+                    it = activeConnections.erase(it) - 1;
                 }
             }
+        }
     }
 }
