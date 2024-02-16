@@ -1,9 +1,21 @@
 #include "Request.hpp"
+#include "Response.hpp"
 #include <cctype>
+#include <cstddef>
 #include <fstream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <vector>
+
+//  ******** PARSING METHODS ********
+
+std::string& Request::trimSpaces(std::string& val) {
+    std::string whiteSpaces = "\t ";
+    val.erase(val.find_last_not_of(whiteSpaces) + 1);
+    val.erase(0, val.find_first_not_of(whiteSpaces));
+    return (val);
+}
 
 void Request::parseRequestLine(std::string buffer) {
     std::stringstream requestLine(buffer);
@@ -13,9 +25,9 @@ void Request::parseRequestLine(std::string buffer) {
     while (std::getline(requestLine, token, ' ')) {
         tokens.push_back(token);
     }
-    this->requestMethod = tokens[0];
-    this->requestRessource = tokens[1];
-    this->httpVersion = tokens[2];
+    this->requestMethod = trimSpaces(tokens[0]);
+    this->requestRessource = trimSpaces(tokens[1]);
+    this->httpVersion = trimSpaces(tokens[2]);
 }
 
 void Request::parseHeaders(std::string buffer) {
@@ -25,9 +37,7 @@ void Request::parseHeaders(std::string buffer) {
 
     std::getline(requestLine, key, ':');
     std::getline(requestLine, value, ':');
-    if (value[0] == ' ')
-        value = value.substr(1);
-    this->headers[key] = value;
+    this->headers[trimSpaces(key)] = trimSpaces(value);
 }
 
 void Request::parseRequest(std::string buffer, std::string delim) {
@@ -55,14 +65,6 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
 }
 
-Request::Request(std::string buffer) {
-    parseRequest(buffer, "\r\n");
-}
-
-Request::~Request() {
-
-}
-
 int Request::checkAllowedChars(std::string value) {
     std::string allowedChars = "-._~:/?#[]@!$&&\'()*+;=%}";
     for (size_t i = 0; i < value.size(); i++) {
@@ -73,6 +75,18 @@ int Request::checkAllowedChars(std::string value) {
     }
     return (0);
 }
+
+//  ******** CONSTRUCTORS ********
+
+Request::Request(std::string buffer) {
+    parseRequest(buffer, "\r\n");
+}
+
+Request::~Request() {
+
+}
+
+//  ******** GETTERS ********
 
 std::string Request::getRequestMethod() const {
     return (this->requestMethod);
@@ -102,4 +116,37 @@ void    Request::printHeaders() {
     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
         std::cout << it->first << " " << it->second << std::endl;
     }
+}
+
+//  ******** HANDLER ********
+
+Response Request::handleRequest() {
+    // check request syntax (encoding - uri length - allowed chars - post but no message content information - request length)
+    // check if uri exists
+    // check if operation is allowed
+    if (requestMethod == "GET") {
+        if (requestRessource == "/") {
+            std::ostringstream ss;
+            std::ifstream file("index.html");
+            if (!file) {
+                Response response("", "HTTP/1.1", 404,"File not found");
+                response.buildResponse("", "text/html");
+                return response;
+            }
+            ss << file.rdbuf();
+            std::string fileContent = ss.str();
+            if (file.fail()) {
+                Response response("", "HTTP/1.1", 500,"Server error");
+                response.buildResponse("", "text/html");
+                return response;
+            } else {
+                Response response("", "HTTP/1.1", 200,"ok");
+                response.buildResponse(fileContent, "text/html");
+                return response;
+            }
+        }
+    }
+    Response response("", "HTTP/1.1", 500,"server error");
+    response.buildResponse("", "text/html");
+    return response;
 }

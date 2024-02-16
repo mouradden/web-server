@@ -1,6 +1,8 @@
 #include "Server.hpp"
+#include <fstream>
 #include <vector>
 #include "Request.hpp"
+#include "Response.hpp"
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
@@ -8,6 +10,7 @@
 // close the listening socket
 // 
 // close socket
+
 
 int main()
 {
@@ -58,38 +61,10 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
-                        // std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
-                        // example how to handle a request
-                        // std::string request(buffer);
-                        // std::string method = request.substr(0, request.find(" "));
-                        // std::cout << "HTTP method: " << method << std::endl;
                         Request req(buffer);
-                        if (req.getRequestMethod() == "GET")
-                        {
-                            if (req.getRequestRessource() == "/")
-                            {
-                                std::ostringstream ss;
-                                std::ifstream file("index.html");
-                                if (!file)
-                                {
-                                    std::cerr << "Error opening file" << std::endl;
-                                    return 1;
-                                }
-                                ss << file.rdbuf();
-                                std::string file_contents = ss.str();
-                                // // Prepare the HTTP response
-                                std::ostringstream response;
-                                // std::cout << "file_contents : " << file_contents << std::endl;
-                                response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << file_contents.size() << "\r\n\r\n" << file_contents;
-                                // Send the HTTP response
-                                send(*it, response.str().c_str(), response.str().size(), 0);
-                                // close(*it);
-                            } else {
-                                std::ostringstream response;
-                                response << "HTTP1.1 404 Failed\r\n\r\n";
-                            }
-                        }
-                    }
+                        Response response = req.handleRequest();
+                        response.sendResponse(*it);
+                    } 
                     else if (bytesRead == 0)
                     {
                         // Connection closed by the client
