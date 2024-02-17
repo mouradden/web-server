@@ -20,6 +20,7 @@ void Response::buildResponse(std::string fileContent, std::string fileType) {
     << "Content-Type: " << fileType << "\r\n" << "Content-Length: " << fileContent.size() << "\r\n\r\n" 
     << fileContent;
     res = ss.str();
+    std::cout << res << std::endl;
 }
 
 void Response::sendResponse(int socket) {

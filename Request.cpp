@@ -65,6 +65,35 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
 }
 
+int Request::validRequest() {
+    if (headers.find("Transfer-Encoding") != headers.end()) {
+        std::cout << "transfer encoding found\n";
+        if (headers["Transfer-Encoding"] != "chunked") {
+            std::cout << "transfer not implemented\n";
+            return (501);
+        }
+    }
+    if (requestMethod == "POST" && (headers.find("Transfer-Encoding") == headers.end() || headers.find("Content-Length") == headers.end())) {
+        std::cout << "POST bad request\n";
+        return (400);
+    }
+    if (checkAllowedChars(requestRessource) == 400) {
+        std::cout << "request uri : Bad request\n";
+        return (400);
+    }
+    if (requestRessource.size() > 2048)
+    {
+        std::cout << "request uri : exceeded 2048\n";
+        return (414);
+    }
+    // if client request body is larger than maximum body allowed in config file (change 8000 value to config file value
+    if (requestEntity.size() > 8000) {
+        std::cout << "request entity too large\n";
+        return (413);
+    }
+    return (0);
+}
+
 int Request::checkAllowedChars(std::string value) {
     std::string allowedChars = "-._~:/?#[]@!$&&\'()*+;=%}";
     for (size_t i = 0; i < value.size(); i++) {
@@ -79,6 +108,7 @@ int Request::checkAllowedChars(std::string value) {
 //  ******** CONSTRUCTORS ********
 
 Request::Request(std::string buffer) {
+    requestEntity = buffer;
     parseRequest(buffer, "\r\n");
 }
 
@@ -124,6 +154,10 @@ Response Request::handleRequest() {
     // check request syntax (encoding - uri length - allowed chars - post but no message content information - request length)
     // check if uri exists
     // check if operation is allowed
+    int code = validRequest();
+    if (code != 0) {
+        std::cout << code << std::endl;
+    }
     if (requestMethod == "GET") {
         if (requestRessource == "/") {
             std::ostringstream ss;
