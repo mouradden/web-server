@@ -42,6 +42,18 @@ int main()
             }
             else
             {
+                int flags = fcntl(clientSocket, F_GETFL, 0);
+                if (flags == -1) {
+                    std::cerr << "Error getting flags for socket\n";
+                    return 1;
+                }
+                std::cout << "*********************************>flags : " << flags << "\n";
+                flags |= O_NONBLOCK;
+                if (fcntl(clientSocket, F_SETFL, flags) == -1) {
+                    std::cerr << "Error setting socket to non-blocking\n";
+                    return 1;
+                }
+                
                 std::cout << "New client connected, socket: " << clientSocket << "\n";
                 if (clientSocket > max_fd)
                     max_fd = clientSocket;
@@ -72,8 +84,8 @@ int main()
                             size_t secondSpace = request.find(" ", firstSpace + 1);
                             std::string target = request.substr(firstSpace + 1, secondSpace - firstSpace - 1);
                             std::cout << "---------->|" << target << "|\n";
-                            if (target == "/home")
-                            {
+                            // if (target == "/home")
+                            // {
                                 std::cout << "===================>" << *it << " is ready to write\n";
                                 std::ostringstream ss;
                                 std::ifstream file("index.html");
@@ -91,7 +103,7 @@ int main()
                                 // Send the HTTP response
                                 send(*it, response.str().c_str(), response.str().size(), 0);
                                 // close(*it);
-                            }
+                            // }
                         }
                     }
                 }
