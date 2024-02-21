@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parseConfigeFile.hpp                               :+:      :+:    :+:   */
+/*   ParseConfigeFile.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: mdenguir <mdenguir@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 20:41:14 by ahajji            #+#    #+#             */
-/*   Updated: 2024/02/19 19:23:34 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/02/20 15:20:42 by mdenguir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ class ParseConfigeFile
     public:
         ParseConfigeFile();
         void    parser(std::string nameFile);
+        std::vector<DataConfige> getData();
 };
 
 #endif

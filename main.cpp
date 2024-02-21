@@ -1,5 +1,5 @@
 #include "Server.hpp"
-#include <vector>
+
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
@@ -11,54 +11,64 @@
 int main()
 {
     Server server;
-
-    server.createSocket();
-    server.createServer();
-    server.putServerOnListening();
+    ParseConfigeFile config;
+    config.parser("./parse/configfile.txt");
+    server.createSocket(config.getData()[0]);
+    server.createServer(config.getData()[0]);
+    server.putServerOnListening(config.getData()[0]);
 
     std::vector<int> activeConnections;
     fd_set setOfFds, readSet, writeSet;
     FD_ZERO(&setOfFds);
-    FD_ZERO(&writeSet);
-    FD_SET(server.getServerSocket(), &setOfFds);
-    int max_fd = server.getServerSocket();
- 
+    int max_fd = -1;
+    for (size_t i = 0; i < server.getServerSocket().size(); i++)
+    {
+        int fd = server.getServerSocket()[i];
+        FD_SET(fd, &setOfFds);
+        if (fd > max_fd)
+            max_fd = fd;
+    }
 
     while (true) 
     {
         readSet = setOfFds;
         writeSet = setOfFds;
-        if (select(max_fd + 1, &readSet, &writeSet, NULL, NULL) == -1)
+        int selected = select(max_fd + 1, &readSet, &writeSet, NULL, NULL);
+        if (selected == -1)
         {
             std::cerr << "Error in select\n";
             return 1;
         }
-        if (FD_ISSET(server.getServerSocket(), &readSet))
+        for (size_t i = 0; i < server.getServerSocket().size(); i++)
         {
-            int clientSocket = accept(server.getServerSocket(), NULL, NULL);
-            if (clientSocket == -1)
+            if (FD_ISSET(server.getServerSocket()[i], &readSet))
             {
-                std::cerr << "Error accepting client connection\n";
-            }
-            else
-            {
-                int flags = fcntl(clientSocket, F_GETFL, 0);
-                if (flags == -1) {
-                    std::cerr << "Error getting flags for socket\n";
-                    return 1;
+                int clientSocket = accept(server.getServerSocket()[i], NULL, NULL);
+                if (clientSocket == -1)
+                {
+                    std::cerr << "Error accepting client connection\n";
                 }
-                std::cout << "*********************************>flags : " << flags << "\n";
-                flags |= O_NONBLOCK;
-                if (fcntl(clientSocket, F_SETFL, flags) == -1) {
-                    std::cerr << "Error setting socket to non-blocking\n";
-                    return 1;
+                else
+                {
+                    int flags = fcntl(clientSocket, F_GETFL, 0);
+                    if (flags == -1) {
+                        std::cerr << "Error getting flags for socket\n";
+                        return 1;
+                    }
+                    // std::cout << "*********************************>flags : " << flags << "\n";
+                    flags |= O_NONBLOCK;
+                    if (fcntl(clientSocket, F_SETFL, flags) == -1) {
+                        std::cerr << "Error setting socket to non-blocking\n";
+                        return 1;
+                    }
+                    
+                    std::cout << "New client connected, socket: " << clientSocket << "\n";
+                    if (clientSocket > max_fd)
+                        max_fd = clientSocket;
+                    // std::cout << "max = " << max_fd << "\n";
+                    activeConnections.push_back(clientSocket);
+                    FD_SET(clientSocket, &setOfFds);
                 }
-                
-                std::cout << "New client connected, socket: " << clientSocket << "\n";
-                if (clientSocket > max_fd)
-                    max_fd = clientSocket;
-                activeConnections.push_back(clientSocket);
-                FD_SET(clientSocket, &setOfFds);
             }
         }
         char buffer[4096];
@@ -72,7 +82,6 @@ int main()
                 if (bytesRead > 0)
                 {
                     std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
-                    // example how to handle a request
                     if (FD_ISSET(*it, &writeSet))
                     {
                         std::string request(buffer);
@@ -96,9 +105,7 @@ int main()
                                 }
                                 ss << file.rdbuf();
                                 std::string file_contents = ss.str();
-                                // // Prepare the HTTP response
                                 std::ostringstream response;
-                                // std::cout << "file_contents : " << file_contents << std::endl;
                                 response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << file_contents.size() << "\r\n\r\n" << file_contents;
                                 // Send the HTTP response
                                 send(*it, response.str().c_str(), response.str().size(), 0);

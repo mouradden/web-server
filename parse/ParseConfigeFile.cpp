@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parseConfigeFile.cpp                               :+:      :+:    :+:   */
+/*   ParseConfigeFile.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: mdenguir <mdenguir@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/02/19 21:54:32 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/02/20 15:25:35 by mdenguir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void    ParseConfigeFile::checkValidServer(std::vector<std::string> splitVector)
 
 void    ParseConfigeFile::checkValidListen(std::vector<std::string> splitVector)
 {
-    int i = 0;
+    size_t i = 0;
     if(splitVector.size() == 2)
     {
         while(i < splitVector[1].size())
@@ -302,8 +302,8 @@ void    ParseConfigeFile::checkValidAutoIndex(std::vector<std::string> splitVect
 
 void    ParseConfigeFile::parser(std::string nameFile)
 {
-    int i = 0;
-    int j = 0;
+    size_t i = 0;
+    // size_t j = 0;
     std::string line;
     std::vector<std::string> myVector_s;
     std::vector<std::string> splitVector;
@@ -390,11 +390,11 @@ void    ParseConfigeFile::parser(std::string nameFile)
                     else
                     {
                         std::cout << "i am here \n";
-                        std::cout << myVector_s[i] <<  std::endl;
-                        std::cout << this->findBraciteLeftLocation << std::endl;  
-                        std::cout << this->findBraciteRightLocation << std::endl; 
-                        std::cout << this->findBraciteLeft << std::endl;  
-                        std::cout << this->findBraciteRight << std::endl;                        
+                        // std::cout << myVector_s[i] <<  std::endl;
+                        // std::cout << this->findBraciteLeftLocation << std::endl;  
+                        // std::cout << this->findBraciteRightLocation << std::endl; 
+                        // std::cout << this->findBraciteLeft << std::endl;  
+                        // std::cout << this->findBraciteRight << std::endl;                        
                         errorParse(); 
                     }
                 }
@@ -406,4 +406,8 @@ void    ParseConfigeFile::parser(std::string nameFile)
     }
     else 
         std::cout << "error happen with this file" << std::endl;
+}
+std::vector<DataConfige>  ParseConfigeFile::getData()
+{
+    return this->data;
 }

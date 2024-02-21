@@ -1,4 +1,4 @@
-SRCS = main.cpp Server.cpp
+SRCS = main.cpp Server.cpp parse/DataConfige.cpp parse/ParseConfigeFile.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
@@ -6,7 +6,7 @@ NAME = webserv
 
 CPP = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++98
+FLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
 
 all : $(NAME)
 
