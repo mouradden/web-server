@@ -1,4 +1,4 @@
-SRCS = main.cpp Server.cpp parse/DataConfige.cpp parse/ParseConfigeFile.cpp
+SRCS = main.cpp Server.cpp parse/DataConfige.cpp parse/ParseConfigeFile.cpp Request.cpp Response.cpp RequestMethods.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 

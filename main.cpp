@@ -1,5 +1,8 @@
 #include "Server.hpp"
-
+#include <fstream>
+#include <vector>
+#include "Request.hpp"
+#include "Response.hpp"
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
@@ -7,6 +10,7 @@
 // close the listening socket
 // 
 // close socket
+
 
 int main()
 {
@@ -75,66 +79,36 @@ int main()
                 }
             }
         }
-        char buffer[4096];
-        for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); ++it)
-        {
-            if (FD_ISSET(*it, &readSet))
+            for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); ++it)
             {
-                memset(buffer, 0, 4096);
-                ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
-                buffer[bytesRead] = '\0';
-                if (bytesRead > 0)
+                if (FD_ISSET(*it, &readSet))
                 {
-                    std::cout << "Socket : " << *it << " Received request:\n" << buffer << std::endl;
-                    if (FD_ISSET(*it, &writeSet))
+                    char buffer[4096];
+                    memset(buffer, 0, 4096);
+                    ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
+                    if (bytesRead > 0)
                     {
-                        std::string request(buffer);
-                        std::string method = request.substr(0, request.find(" "));
-                        std::cout << "HTTP method: " << method << std::endl;
-                        if (method == "GET")
-                        {
-                            size_t firstSpace = request.find(" ");
-                            size_t secondSpace = request.find(" ", firstSpace + 1);
-                            std::string target = request.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-                            std::cout << "---------->|" << target << "|\n";
-                            // if (target == "/home")
-                            // {
-                                std::cout << "===================>" << *it << " is ready to write\n";
-                                std::ostringstream ss;
-                                std::ifstream file("index.html");
-                                if (!file)
-                                {
-                                    std::cerr << "Error opening file" << std::endl;
-                                    return 1;
-                                }
-                                ss << file.rdbuf();
-                                std::string file_contents = ss.str();
-                                std::ostringstream response;
-                                response << "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " << file_contents.size() << "\r\n\r\n" << file_contents;
-                                // Send the HTTP response
-                                send(*it, response.str().c_str(), response.str().size(), 0);
-                                // close(*it);
-                            // }
-                        }
+                        Request req(buffer);
+                        Response response = req.handleRequest();
+                        response.sendResponse(*it);
+                    } 
+                    else if (bytesRead == 0)
+                    {
+                        // Connection closed by the client
+                        std::cout << "Client disconnected, socket: " << *it << "\n";
+                        close(*it);
+                        FD_CLR(*it, &setOfFds);
+                        it = activeConnections.erase(it) - 1; // Decrement iterator to avoid skipping the next element
+                    }
+                    else
+                    {
+                        // Error in recv
+                        std::cerr << "Error receiving data from client, socket: " << *it << "\n";
+                        close(*it);
+                        FD_CLR(*it, &setOfFds);
+                        it = activeConnections.erase(it) - 1;
                     }
                 }
-                else if (bytesRead == 0)
-                {
-                    // Connection closed by the client
-                    std::cout << "Client disconnected, socket: " << *it << "\n";
-                    close(*it);
-                    FD_CLR(*it, &setOfFds);
-                    it = activeConnections.erase(it) - 1; // Decrement iterator to avoid skipping the next element
-                }
-                else
-                {
-                    // Error in recv
-                    std::cerr << "Error receiving data from client, socket: " << *it << "\n";
-                    close(*it);
-                    FD_CLR(*it, &setOfFds);
-                    it = activeConnections.erase(it) - 1;
-                }
             }
-        }
     }
 }
