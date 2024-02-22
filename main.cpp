@@ -13,17 +13,21 @@ int main()
     Server server;
     ParseConfigeFile config;
     config.parser("./parse/configfile.txt");
-    server.createSocket(config.getData()[0]);
-    server.createServer(config.getData()[0]);
-    server.putServerOnListening(config.getData()[0]);
+    for (size_t i = 0; i < config.getData().size(); i++)
+    {
+        server.createSocket(config.getData()[i]);
+    }
+    
+    server.createServer(config.getData());
+    server.putServerOnListening();
 
     std::vector<int> activeConnections;
     fd_set setOfFds, readSet, writeSet;
     FD_ZERO(&setOfFds);
     int max_fd = -1;
-    for (size_t i = 0; i < server.getServerSocket().size(); i++)
+    for (size_t i = 0; i < server.getServerSockets().size(); i++)
     {
-        int fd = server.getServerSocket()[i];
+        int fd = server.getServerSocket(i);
         FD_SET(fd, &setOfFds);
         if (fd > max_fd)
             max_fd = fd;
@@ -39,11 +43,11 @@ int main()
             std::cerr << "Error in select\n";
             return 1;
         }
-        for (size_t i = 0; i < server.getServerSocket().size(); i++)
+        for (size_t i = 0; i < server.getServerSockets().size(); i++)
         {
-            if (FD_ISSET(server.getServerSocket()[i], &readSet))
+            if (FD_ISSET(server.getServerSocket(i), &readSet))
             {
-                int clientSocket = accept(server.getServerSocket()[i], NULL, NULL);
+                int clientSocket = accept(server.getServerSocket(i), NULL, NULL);
                 if (clientSocket == -1)
                 {
                     std::cerr << "Error accepting client connection\n";

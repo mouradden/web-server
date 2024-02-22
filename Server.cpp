@@ -3,11 +3,9 @@
 void Server::createSocket(DataConfige config)
 {
     std::vector<std::string> ports = config.getListen();
-    // std::cout << "size = " << ports.size() << "\n";
     for (size_t i = 0; i < ports.size(); i++)
     {
         int socketFd = socket(AF_INET, SOCK_STREAM, 0);
-        // std::cout << " i = " << i << " socketFd = " << socketFd << "\n";
         if (socketFd == -1)
         {
             std::cout << "Failed to create socket. Exiting..." << std::endl;
@@ -17,66 +15,76 @@ void Server::createSocket(DataConfige config)
         int enable = 1;
         if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
             std::cerr << "setsockopt(SO_REUSEADDR) failed";
-        serverSockets.push_back(socketFd);
+        setServerSocket(socketFd);
+        servers[socketFd] = config;
     }
 }
 
-void Server::createServer(DataConfige config)
+void Server::createServer(std::vector<DataConfige> config)
 {
-    std::vector<std::string> ports = config.getListen();
-    // std::vector<sockaddr_in> serverAddress;
-    for (size_t i = 0; i < ports.size(); i++)
+    for (size_t i = 0; i < config.size(); i++)
     {
-        // std::cout << " i = " << i << " port = " << ports[i] << "\n";
-        sockaddr_in address;
-        std::memset(&address, 0, sizeof(address));
-        address.sin_family = AF_INET; // address family : ipv4
-        address.sin_addr.s_addr = INADDR_ANY;
-        // address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // specify the IP address to which the server will bind
-        // address.sin_addr.s_addr = inet_addr("127.0.0.1"); // specify the IP address to which the server will bind
-        // std::cout << "port : " << *(serverSockets.begin() + i) << "\n";
-        address.sin_port = htons(std::stoi(ports[i]));
-        serverAddress.push_back(address);
+        std::vector<std::string> ports = config[i].getListen();
+        for (size_t j = 0; j < ports.size(); j++)
+        {
+            sockaddr_in address;
+            std::memset(&address, 0, sizeof(address));
+            address.sin_family = AF_INET; // address family : ipv4
+            address.sin_addr.s_addr = INADDR_ANY;
+            // address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // specify the IP address to which the server will bind
+            // address.sin_addr.s_addr = inet_addr("127.0.0.1"); // specify the IP address to which the server will bind
+            address.sin_port = htons(atoi(ports[j].c_str()));
+            serverAddress.push_back(address);
+        }
     }
-        // std::cout << " ii = " << ports.size() << "\n";
-        // std::cout << "socket0 = " << serverSockets[0] << "\n";
-        // std::cout << "socket1 = " << serverSockets[1] << "\n";
+
     for (size_t i = 0; i < serverSockets.size(); i++)
     {
-        int binded = bind(this->serverSockets[i], reinterpret_cast<sockaddr*>(&(this->serverAddress[i])), sizeof(this->serverAddress[i]));
-        // std::cout << "bind = " << binded << "\n";
-        if (binded == -1)
+        int bindResult = bind(this->getServerSocket(i), reinterpret_cast<sockaddr*>(&(this->serverAddress[i])), sizeof(this->serverAddress[i]));
+        if (bindResult == -1)
         {
-            std::cout << "Failed to bind the socket.to port " << ports[i] << ". Exiting..." << std::endl;
-            close(this->serverSockets[i]);
+            std::cout << "Failed to bind the socket.to port " << ntohs(serverAddress[i].sin_port) << ". Exiting..." << std::endl;
+            close(this->getServerSocket(i));
             exit(1);
         }
-        std::cout << "[INFO] Server created : socket successfully binded with 127.0.0.1:" << ports[i] << std::endl;
+        std::cout << "[INFO] Server created : socket successfully binded with 127.0.0.1:" << ntohs(serverAddress[i].sin_port) << std::endl;
     }
 }
 
-void Server::putServerOnListening(DataConfige config)
+void Server::putServerOnListening()
 {
-    std::vector<std::string> ports = config.getListen();
-    for (size_t i = 0; i < ports.size(); i++)
+    for (size_t i = 0; i < serverSockets.size(); i++)
     {
-        int listened = listen(serverSockets[i], 5);
-        // std::cout << "listen = " << listened << "\n";
-        if (listened == -1)
-        {
-            std::cout << "Failed to put the server on listening on port " << ports[i] << " Exiting..." << std::endl;
-            close(serverSockets[i]);
+        int listenResult = listen(getServerSocket(i), SOMAXCONN);
+        if (listenResult == -1) {
+            std::cerr << "Failed to listen on socket for port " << ntohs(serverAddress[i].sin_port) << ". Exiting..." << std::endl;
+            close(getServerSocket(i));
             exit(1);
         }
-        std::cout << "[INFO] Server listening on port " << ports[i] << std::endl;
+        std::cout << "[INFO] Server listening on port " << ntohs(serverAddress[i].sin_port) << std::endl;
     }
 }
 
-const std::vector<int>& Server::getServerSocket()
+const std::vector<int>& Server::getServerSockets()
 {
     return serverSockets;
 }
 const std::vector<sockaddr_in>& Server::getServerAddress()
 {
     return serverAddress;
+}
+
+const int& Server::getServerSocket(int index)
+{
+    return (this->serverSockets[index]);
+}
+
+void Server::setServerSocket(int socket)
+{
+    this->serverSockets.push_back(socket);
+}
+
+std::map<int, DataConfige>& Server::getServers()
+{
+    return (this->servers);
 }

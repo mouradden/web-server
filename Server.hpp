@@ -14,17 +14,24 @@
 #include <fcntl.h>
 
 #include <vector>
+#include <map>
 
 class Server
 {
-    public :
+    private:
         std::vector<int> serverSockets;
+        std::map<int, DataConfige> servers;
         std::vector<sockaddr_in> serverAddress;
+
     public :
         void createSocket(DataConfige config);
-        void createServer(DataConfige config);
-        void putServerOnListening(DataConfige config);
+        void createServer(std::vector<DataConfige> config);
+        void putServerOnListening();
 
-        const std::vector<int>& getServerSocket();
+        const std::vector<int>& getServerSockets();
+        const int& getServerSocket(int index);
+        void setServerSocket(int socket);
         const std::vector<sockaddr_in>& getServerAddress();
+
+        std::map<int, DataConfige>& getServers();
 };
