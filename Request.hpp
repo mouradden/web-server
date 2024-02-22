@@ -1,3 +1,6 @@
+#pragma once
+
+#include "RequestMethods.hpp"
 #include "Server.hpp"
 #include "Response.hpp"
 #include <map>

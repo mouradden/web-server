@@ -1,12 +1,5 @@
 #include "Request.hpp"
-#include "Response.hpp"
-#include <cctype>
-#include <cstddef>
-#include <fstream>
-#include <ostream>
-#include <sstream>
-#include <string>
-#include <vector>
+#include "RequestMethods.hpp"
 
 //  ******** PARSING METHODS ********
 
@@ -69,27 +62,25 @@ int Request::validRequest() {
     if (headers.find("Transfer-Encoding") != headers.end()) {
         std::cout << "transfer encoding found\n";
         if (headers["Transfer-Encoding"] != "chunked") {
-            std::cout << "transfer not implemented\n";
             return (501);
         }
     }
     if (requestMethod == "POST" && (headers.find("Transfer-Encoding") == headers.end() || headers.find("Content-Length") == headers.end())) {
-        std::cout << "POST bad request\n";
-        return (400);
+        return (BAD_REQUEST);
     }
     if (checkAllowedChars(requestRessource) == 400) {
         std::cout << "request uri : Bad request\n";
-        return (400);
+        return (BAD_REQUEST);
     }
     if (requestRessource.size() > 2048)
     {
         std::cout << "request uri : exceeded 2048\n";
-        return (414);
+        return (REQUEST_URI_EXCEEDED);
     }
     // if client request body is larger than maximum body allowed in config file (change 8000 value to config file value
     if (requestEntity.size() > 8000) {
         std::cout << "request entity too large\n";
-        return (413);
+        return (ENTITY_LENGTH_EXCEEDED);
     }
     return (0);
 }
@@ -151,36 +142,12 @@ void    Request::printHeaders() {
 //  ******** HANDLER ********
 
 Response Request::handleRequest() {
-    // check request syntax (encoding - uri length - allowed chars - post but no message content information - request length)
-    // check if uri exists
-    // check if operation is allowed
     int code = validRequest();
     if (code != 0) {
-        std::cout << code << std::endl;
+        Response response("HTTP/1.1", code);
+        response.buildResponse();
+        return (response);
     }
-    if (requestMethod == "GET") {
-        if (requestRessource == "/") {
-            std::ostringstream ss;
-            std::ifstream file("index.html");
-            if (!file) {
-                Response response("", "HTTP/1.1", 404,"File not found");
-                response.buildResponse("", "text/html");
-                return response;
-            }
-            ss << file.rdbuf();
-            std::string fileContent = ss.str();
-            if (file.fail()) {
-                Response response("", "HTTP/1.1", 500,"Server error");
-                response.buildResponse("", "text/html");
-                return response;
-            } else {
-                Response response("", "HTTP/1.1", 200,"ok");
-                response.buildResponse(fileContent, "text/html");
-                return response;
-            }
-        }
-    }
-    Response response("", "HTTP/1.1", 500,"server error");
-    response.buildResponse("", "text/html");
+    Response response = RequestMethod::GET(*this);
     return response;
 }

@@ -9,6 +9,9 @@ void Server::createSocket()
         std::cout << "Failed to create socket. Exiting..." << std::endl;
         exit(1);
     }
+    int enable = 1;
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        std::cerr << "setsockopt(SO_REUSEADDR) failed";
     std::cout << "[INFO] Socket successfully created" << std::endl;
 }
 

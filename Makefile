@@ -1,4 +1,4 @@
-SRCS = main.cpp Server.cpp Request.cpp Response.cpp
+SRCS = main.cpp Server.cpp Request.cpp Response.cpp RequestMethods.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
