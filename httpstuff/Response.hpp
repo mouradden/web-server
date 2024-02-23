@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Server.hpp"
+#include "../Server.hpp"
 #include <map>
 #include <sstream>
 #include <vector>

@@ -1,8 +1,9 @@
 #include "Server.hpp"
 #include <fstream>
 #include <vector>
-#include "Request.hpp"
-#include "Response.hpp"
+#include "httpstuff/Request.hpp"
+#include "httpstuff/Response.hpp"
+#include "parse/DataConfige.hpp"
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
@@ -88,6 +89,7 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
+                        DataConfige config = server.getServers()[*it];
                         Request req(buffer);
                         Response response = req.handleRequest();
                         response.sendResponse(*it);

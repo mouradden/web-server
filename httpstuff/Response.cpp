@@ -1,5 +1,5 @@
 #include "Response.hpp"
-#include "Server.hpp"
+#include "../Server.hpp"
 #include <sstream>
 
 std::string getContentType(std::string fileExtension) {

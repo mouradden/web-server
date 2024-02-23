@@ -1,6 +1,5 @@
 #include "RequestMethods.hpp"
 #include "Response.hpp"
-#include "Server.hpp"
 #include <fstream>
 #include <sstream>
 
