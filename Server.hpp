@@ -71,4 +71,5 @@ class Server
         const std::vector<sockaddr_in>& getServerAddress();
 
         std::map<int, DataConfige>& getServers();
+        void setServer(int socketFd, DataConfige config);
 };

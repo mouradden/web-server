@@ -41,8 +41,8 @@ int main()
     {
         readSet = setOfFds;
         writeSet = setOfFds;
-        int selected = select(max_fd + 1, &readSet, &writeSet, NULL, NULL);
-        if (selected == -1)
+        int selectResult = select(max_fd + 1, &readSet, &writeSet, NULL, NULL);
+        if (selectResult == -1)
         {
             std::cerr << "Error in select\n";
             return 1;
@@ -75,7 +75,9 @@ int main()
                         max_fd = clientSocket;
                     // std::cout << "max = " << max_fd << "\n";
                     activeConnections.push_back(clientSocket);
+                    
                     FD_SET(clientSocket, &setOfFds);
+                    server.setServer(clientSocket, server.getServers()[server.getServerSocket(i)]);
                 }
             }
         }
@@ -88,6 +90,14 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
+                        std::cout << "---->it = " << *it << "\n";
+                        for (std::map<int, DataConfige>::iterator it = server.getServers().begin(); it != server.getServers().end(); it++)
+                        {
+                            std::cout << "key = " << it->first << "\n";
+                        }
+                        // std::cout << "size = " << server.getServers().size() << "\n";
+                        DataConfige config = server.getServers()[*it];
+                        std::cout << "root file == " << config.getRoot() << std::endl;
                         Request req(buffer);
                         Response response = req.handleRequest();
                         response.sendResponse(*it);
