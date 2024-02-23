@@ -17,7 +17,7 @@ server {
 
     autoindex on
     # Define default file to serve
-    index iindex1.html
+    index index.html
 
     # Configure error pages
     error_page 404 /404.html

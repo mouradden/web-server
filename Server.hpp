@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include "./parse/DataConfige.hpp"
-#include "./parse/ParseConfigeFile.hpp"
+#include "./parse/DataConfig.hpp"
+#include "./parse/ParseConfigFile.hpp"
 
 #include <iostream>
 #include <sys/socket.h>
@@ -57,12 +57,12 @@ class Server
 {
     private:
         std::vector<int> serverSockets;
-        std::map<int, DataConfige> servers;
+        std::map<int, DataConfig> servers;
         std::vector<sockaddr_in> serverAddress;
 
     public :
-        void createSocket(DataConfige config);
-        void createServer(std::vector<DataConfige> config);
+        void createSocket(DataConfig config);
+        void createServer(std::vector<DataConfig> config);
         void putServerOnListening();
 
         const std::vector<int>& getServerSockets();
@@ -70,6 +70,6 @@ class Server
         void setServerSocket(int socket);
         const std::vector<sockaddr_in>& getServerAddress();
 
-        std::map<int, DataConfige>& getServers();
-        void setServer(int socketFd, DataConfige config);
+        std::map<int, DataConfig>& getServers();
+        void setServer(int socketFd, DataConfig config);
 };

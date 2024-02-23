@@ -1,6 +1,7 @@
 #include "Server.hpp"
+#include "parse/DataConfig.hpp"
 
-void Server::createSocket(DataConfige config)
+void Server::createSocket(DataConfig config)
 {
     std::vector<std::string> ports = config.getListen();
     size_t i;
@@ -21,7 +22,7 @@ void Server::createSocket(DataConfige config)
     std::cout << "[INFO] " << i << " Sockets successfully created" << std::endl;
 }
 
-void Server::createServer(std::vector<DataConfige> config)
+void Server::createServer(std::vector<DataConfig> config)
 {
     for (size_t i = 0; i < config.size(); i++)
     {
@@ -85,12 +86,12 @@ void Server::setServerSocket(int socket)
     this->serverSockets.push_back(socket);
 }
 
-std::map<int, DataConfige>& Server::getServers()
+std::map<int, DataConfig>& Server::getServers()
 {
     return (this->servers);
 }
 
-void Server::setServer(int socketFd, DataConfige config)
+void Server::setServer(int socketFd, DataConfig config)
 {
     this->servers[socketFd] = config;
 }

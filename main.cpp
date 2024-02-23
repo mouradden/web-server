@@ -3,7 +3,7 @@
 #include <vector>
 #include "httpstuff/Request.hpp"
 #include "httpstuff/Response.hpp"
-#include "parse/DataConfige.hpp"
+#include "parse/DataConfig.hpp"
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
@@ -16,7 +16,7 @@
 int main()
 {
     Server server;
-    ParseConfigeFile config;
+    ParseConfigFile config;
     config.parser("./parse/configfile.txt");
     for (size_t i = 0; i < config.getData().size(); i++)
     {
@@ -92,12 +92,12 @@ int main()
                     if (bytesRead > 0)
                     {
                         std::cout << "---->it = " << *it << "\n";
-                        for (std::map<int, DataConfige>::iterator it = server.getServers().begin(); it != server.getServers().end(); it++)
+                        for (std::map<int, DataConfig>::iterator it = server.getServers().begin(); it != server.getServers().end(); it++)
                         {
                             std::cout << "key = " << it->first << "\n";
                         }
                         // std::cout << "size = " << server.getServers().size() << "\n";
-                        DataConfige config = server.getServers()[*it];
+                        DataConfig config = server.getServers()[*it];
                         std::cout << "root file == " << config.getRoot() << std::endl;
                         Request req(buffer);
                         Response response = req.handleRequest();

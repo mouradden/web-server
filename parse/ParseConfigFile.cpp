@@ -1,24 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ParseConfigeFile.cpp                               :+:      :+:    :+:   */
+/*   ParseConfigFile.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mdenguir <mdenguir@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: nachab <nachab@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/02/20 15:25:35 by mdenguir         ###   ########.fr       */
+/*   Updated: 2024/02/23 20:40:50 by nachab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ParseConfigeFile.hpp"
+#include "ParseConfigFile.hpp"
+#include "DataConfig.hpp"
 
-void    ParseConfigeFile::errorParse()
+void    ParseConfigFile::errorParse()
 {
     std::cout << "error in parse" << std::endl;
     exit(1);
 }
 
-ParseConfigeFile::ParseConfigeFile()
+ParseConfigFile::ParseConfigFile()
 {
     this->findBraciteRight = 0;
     this->findBraciteLeft = 0;
@@ -26,7 +27,7 @@ ParseConfigeFile::ParseConfigeFile()
     this->findBraciteLeftLocation = 0;
 }
 
-std::vector<std::string>     ParseConfigeFile::split(std::string str)
+std::vector<std::string>     ParseConfigFile::split(std::string str)
 {
     std::vector<std::string> allElments;
     std::string part, part2;
@@ -42,7 +43,7 @@ std::vector<std::string>     ParseConfigeFile::split(std::string str)
     return allElments;
 }
 
-void    ParseConfigeFile::checkValidServer(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidServer(std::vector<std::string> splitVector)
 {
     if ((splitVector[1] == "{" && splitVector.size() == 2)
         || (splitVector.size() == 1))
@@ -50,7 +51,7 @@ void    ParseConfigeFile::checkValidServer(std::vector<std::string> splitVector)
             this->findBraciteRight = 1;
             this->findBraciteLeftLocation = 0;
             this->findBraciteRightLocation = 0;
-            DataConfige newConfig;
+            DataConfig newConfig;
             data.push_back(newConfig);
     }
     else
@@ -60,7 +61,7 @@ void    ParseConfigeFile::checkValidServer(std::vector<std::string> splitVector)
     }
 }
 
-void    ParseConfigeFile::checkValidListen(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidListen(std::vector<std::string> splitVector)
 {
     size_t i = 0;
     if(splitVector.size() == 2)
@@ -80,7 +81,7 @@ void    ParseConfigeFile::checkValidListen(std::vector<std::string> splitVector)
     }
         
 }
-void    ParseConfigeFile::checkValidServerName(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidServerName(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
@@ -93,7 +94,7 @@ void    ParseConfigeFile::checkValidServerName(std::vector<std::string> splitVec
     }
 }
 
-void    ParseConfigeFile::checkValidRoot(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidRoot(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
@@ -106,7 +107,7 @@ void    ParseConfigeFile::checkValidRoot(std::vector<std::string> splitVector)
     }
 }
 
-void    ParseConfigeFile::checkValidIndex(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidIndex(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
@@ -118,7 +119,7 @@ void    ParseConfigeFile::checkValidIndex(std::vector<std::string> splitVector)
         errorParse();
     }
 }
-void    ParseConfigeFile::checkValidErrorPage(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidErrorPage(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 3)
     {
@@ -131,7 +132,7 @@ void    ParseConfigeFile::checkValidErrorPage(std::vector<std::string> splitVect
     }
 }
 
-void    ParseConfigeFile::checkValidLocation(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocation(std::vector<std::string> splitVector)
 {
     if(this->findBraciteLeftLocation == 1 && this->findBraciteRightLocation == 1)
     {
@@ -151,7 +152,7 @@ void    ParseConfigeFile::checkValidLocation(std::vector<std::string> splitVecto
     }
 
 }
-void    ParseConfigeFile::checkValidLocationRoot(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationRoot(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
@@ -164,7 +165,7 @@ void    ParseConfigeFile::checkValidLocationRoot(std::vector<std::string> splitV
     }
 }
 
-void    ParseConfigeFile::checkValidLocationAlias(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationAlias(std::vector<std::string> splitVector)
 {
 
     if(splitVector.size() == 2)
@@ -178,7 +179,7 @@ void    ParseConfigeFile::checkValidLocationAlias(std::vector<std::string> split
     }
 }
 
-void    ParseConfigeFile::checkValidLocationIndex(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationIndex(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
@@ -191,7 +192,7 @@ void    ParseConfigeFile::checkValidLocationIndex(std::vector<std::string> split
     }
 }
 
-void    ParseConfigeFile::checkValidLocationMethods(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationMethods(std::vector<std::string> splitVector)
 {
     if(splitVector.size() >= 2 && splitVector.size() <= 4)
     {
@@ -208,7 +209,7 @@ void    ParseConfigeFile::checkValidLocationMethods(std::vector<std::string> spl
         errorParse();
     }
 }
-void    ParseConfigeFile::checkValidLocationAutoIndex(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationAutoIndex(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
         this->data.back().setLocationAutoIndex(splitVector[1]);
@@ -219,7 +220,7 @@ void    ParseConfigeFile::checkValidLocationAutoIndex(std::vector<std::string> s
     }
 }
 
-void    ParseConfigeFile::checkValidLocationCgiExtention(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationCgiExtention(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
         this->data.back().setLocationCgiExtention(splitVector[1]);
@@ -229,7 +230,7 @@ void    ParseConfigeFile::checkValidLocationCgiExtention(std::vector<std::string
         errorParse();
     }
 }
-void    ParseConfigeFile::checkValidLocationCgiBin(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationCgiBin(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
         this->data.back().setLocationCgiBin(splitVector[1]);
@@ -240,7 +241,7 @@ void    ParseConfigeFile::checkValidLocationCgiBin(std::vector<std::string> spli
     }
 }
 
-void    ParseConfigeFile::checkValidLocationReturn(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationReturn(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 3)
         this->data.back().setLocationReturn(splitVector[1], splitVector[2]);
@@ -251,7 +252,7 @@ void    ParseConfigeFile::checkValidLocationReturn(std::vector<std::string> spli
     }
 }
 
-void    ParseConfigeFile::checkValidLocationLeftBrackite(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidLocationLeftBrackite(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 1)
     {
@@ -261,7 +262,7 @@ void    ParseConfigeFile::checkValidLocationLeftBrackite(std::vector<std::string
         errorParse();
 }
 
-void    ParseConfigeFile::checkValidServerLeftBrackite(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidServerLeftBrackite(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 1)
     {
@@ -271,7 +272,7 @@ void    ParseConfigeFile::checkValidServerLeftBrackite(std::vector<std::string> 
     else
         errorParse();
 }
-void    ParseConfigeFile::checkValidHost(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidHost(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
         this->data.back().setHost(splitVector[1]);
@@ -282,7 +283,7 @@ void    ParseConfigeFile::checkValidHost(std::vector<std::string> splitVector)
     }
 }
 
-void    ParseConfigeFile::checkValidAutoIndex(std::vector<std::string> splitVector)
+void    ParseConfigFile::checkValidAutoIndex(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
@@ -300,7 +301,7 @@ void    ParseConfigeFile::checkValidAutoIndex(std::vector<std::string> splitVect
     }
 }
 
-void    ParseConfigeFile::parser(std::string nameFile)
+void    ParseConfigFile::parser(std::string nameFile)
 {
     size_t i = 0;
     // size_t j = 0;
@@ -407,7 +408,7 @@ void    ParseConfigeFile::parser(std::string nameFile)
     else 
         std::cout << "error happen with this file" << std::endl;
 }
-std::vector<DataConfige>  ParseConfigeFile::getData()
+std::vector<DataConfig>  ParseConfigFile::getData()
 {
     return this->data;
 }
