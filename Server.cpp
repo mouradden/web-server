@@ -3,7 +3,8 @@
 void Server::createSocket(DataConfige config)
 {
     std::vector<std::string> ports = config.getListen();
-    for (size_t i = 0; i < ports.size(); i++)
+    size_t i;
+    for (i = 0; i < ports.size(); i++)
     {
         int socketFd = socket(AF_INET, SOCK_STREAM, 0);
         if (socketFd == -1)
@@ -11,13 +12,13 @@ void Server::createSocket(DataConfige config)
             std::cout << "Failed to create socket. Exiting..." << std::endl;
             exit(1);
         }
-        std::cout << "[INFO] Socket successfully created" << std::endl;
         int enable = 1;
         if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
             std::cerr << "setsockopt(SO_REUSEADDR) failed";
         setServerSocket(socketFd);
         servers[socketFd] = config;
     }
+    std::cout << "[INFO] " << i << " Sockets successfully created" << std::endl;
 }
 
 void Server::createServer(std::vector<DataConfige> config)
@@ -87,4 +88,9 @@ void Server::setServerSocket(int socket)
 std::map<int, DataConfige>& Server::getServers()
 {
     return (this->servers);
+}
+
+void Server::setServer(int socketFd, DataConfige config)
+{
+    this->servers[socketFd] = config;
 }
