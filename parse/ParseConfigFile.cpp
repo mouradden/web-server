@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParseConfigFile.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nachab <nachab@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/02/23 20:40:50 by nachab           ###   ########.fr       */
+/*   Updated: 2024/02/24 10:59:28 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ void    ParseConfigFile::checkValidIndex(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
     {
-        this->data.back().setRoot(splitVector[1]);
+        this->data.back().setIndex(splitVector[1]);
     }
     else
     {
@@ -338,7 +338,7 @@ void    ParseConfigFile::parser(std::string nameFile)
                         checkValidServerName(splitVector);
                     else if(splitVector[0] == "root" && this->findBraciteRight == 1
                         && this->findBraciteRightLocation == 0)
-                        checkValidRoot(splitVector);
+                            checkValidRoot(splitVector);
                     else if(splitVector[0] == "index" && this->findBraciteRight == 1
                         && this->findBraciteRightLocation == 0)
                         checkValidIndex(splitVector);
@@ -404,6 +404,7 @@ void    ParseConfigFile::parser(std::string nameFile)
             }
             if(this->findBraciteLeft != 0 || this->findBraciteRight != 0)
                 errorParse();
+            std::cout << this->data[0].getRoot() << std::endl;
     }
     else 
         std::cout << "error happen with this file" << std::endl;

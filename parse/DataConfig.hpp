@@ -81,7 +81,7 @@ class DataConfig
         std::vector<std::string>    getServerName();
         void    setServerName(std::string serverName);
         std::string    getRoot();
-        void    setRoot(std::string index);
+        void    setRoot(std::string root);
         std::string    getIndex();
         void    setIndex(std::string index);
         std::vector<ErrorPage>    getErrorPage();
