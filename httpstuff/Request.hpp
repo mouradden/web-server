@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../parse/DataConfig.hpp"
 #include "RequestMethods.hpp"
 #include "../Server.hpp"
 #include "Response.hpp"
@@ -35,6 +36,6 @@ class Request {
         std::string getHttpVersion() const;
         std::string getHeader(std::string key) const;
         std::string getBody() const;
-        Response handleRequest();
+        Response handleRequest(DataConfig config);
         void printHeaders();
 };
