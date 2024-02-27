@@ -23,10 +23,10 @@ server {
     error_page 404 /404.html
 
     # Define location of static files
-    location /static/ {
+    location /testFolder/ {
         alias /var/www/static/
         root /var/www/static/
-        index statuc.html
+        index index.html
         methods GET
         autoindex on
         cgi_extention   .py

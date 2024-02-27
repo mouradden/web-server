@@ -141,13 +141,13 @@ void    Request::printHeaders() {
 
 //  ******** HANDLER ********
 
-Response Request::handleRequest() {
+Response Request::handleRequest(DataConfig config) {
     int code = validRequest();
     if (code != 0) {
         Response response("HTTP/1.1", code);
         response.buildResponse();
         return (response);
     }
-    Response response = RequestMethod::GET(*this);
+    Response response = RequestMethod::GET(*this, config);
     return response;
 }

@@ -91,16 +91,13 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
-                        // std::cout << "---->it = " << *it << "\n";
-                        // for (std::map<int, DataConfig>::iterator it = server.getServers().begin(); it != server.getServers().end(); it++)
-                        // {
-                        //     std::cout << "key = " << it->first << "\n";
-                        // }
-                        // std::cout << "size = " << server.getServers().size() << "\n";
-                        // DataConfig config = server.getServers()[*it];
-                        // std::cout << "root file == " << config.getRoot() << std::endl;
+                        DataConfig config = server.getServers()[*it];
+                        std::vector<Location> locations = config.getLocation();
+                        for (size_t i = 0; i < locations.size(); i++) {
+                            std::cout << locations[i].location << std::endl;
+                        }
                         Request req(buffer);
-                        Response response = req.handleRequest();
+                        Response response = req.handleRequest(config);
                         response.sendResponse(*it);
                     } 
                     else if (bytesRead == 0)

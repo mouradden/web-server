@@ -2,6 +2,7 @@
 #include "Response.hpp"
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 Response buildResponseWithFile(std::string filename) {
     std::ostringstream ss;
@@ -21,16 +22,34 @@ Response buildResponseWithFile(std::string filename) {
     }
 }
 
-Response RequestMethod::GET(Request& request) {
-    // host in request
-    std::string requestedRessource = request.getRequestRessource();
-    if (!request.getHeader("host").empty()) {
+int checkIfLocationExists(std::vector<Location> locations, std::string requestedRessource) {
+    for (size_t i = 0; i < locations.size(); i++) {
+        if (locations[i].location.compare(requestedRessource) == 0)
+            return (i);
+    }
+    return (-1);
+}
 
-    } else if (requestedRessource.compare("/") == 0) {
-        Response response = buildResponseWithFile("index.html");
+Response RequestMethod::GET(Request& request, DataConfig config) {
+    std::string requestedRessource = request.getRequestRessource();
+    if (requestedRessource.compare("/") == 0) {
+        Response response = buildResponseWithFile(config.getIndex());
         return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
-
+        std::vector<Location> locations = config.getLocation();
+        int index = checkIfLocationExists(locations, requestedRessource);
+        if (index != -1) {
+            if (locations[index].methods.get == 0) {
+                Response response("HTTP/1.1", 405);
+                buildResponseWithFile("");
+                return (response);
+            }
+            Response response = buildResponseWithFile(locations[index].index);
+            return (response);
+        } else {
+            Response response = buildResponseWithFile("");
+            return (response);
+        }
     } else {
         Response response = buildResponseWithFile(requestedRessource.substr(1));
         return (response);
