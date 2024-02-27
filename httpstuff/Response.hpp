@@ -13,6 +13,7 @@ class Response {
         std::string status;
         std::string contentType;
         unsigned int contentLength;
+        std::map<std::string, std::string> headers;
         std::string body;
         std::string responseEntity;
 
@@ -28,6 +29,7 @@ class Response {
         void setContentType(std::string fileExtension);
         void setContentLength(unsigned int length);
         void setResponseBody(std::string content);
+        void setHeader(std::string key, std::string value);
 
         std::string getResponseEntity();
 };

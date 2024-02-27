@@ -154,7 +154,11 @@ void    Request::printHeaders() {
 Response Request::handleRequest(DataConfig config) {
     int code = validRequest(config);
     if (code != 0) {
+        std::cout << "works\n" << std::endl;
         Response response;
+        if (code == PERMANENTLY_MOVED) {
+            response.setHeader("Location:", requestRessource + "/");
+        }
         response.buildResponse(code);
         std::cout << response.getResponseEntity();
         return (response);

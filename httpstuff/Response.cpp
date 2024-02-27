@@ -58,10 +58,20 @@ Response& Response::operator=(const Response &ref) {
 void Response::buildResponse(unsigned int code) {
     std::ostringstream ss;
     setStatus(code);
-    ss << httpVersion << " " << code << " " << status << "\r\n" 
-    << "Content-Type: " << contentType << "\r\n" 
-    << "Content-Length: " << contentLength << "\r\n\r\n" 
-    << body;
+    if (headers.size() >= 1) {
+        ss << httpVersion << " " << code << " " << status << "\r\n" 
+            << "Content-Type: " << contentType << "\r\n" 
+            << "Content-Length: " << contentLength << "\r\n";
+        for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
+            ss << it->first << " " << it->second << "\r\n";
+        }
+        ss << "\r\n" << body;
+    } else {
+        ss << httpVersion << " " << code << " " << status << "\r\n" 
+            << "Content-Type: " << contentType << "\r\n" 
+            << "Content-Length: " << contentLength << "\r\n\r\n" 
+            << body;
+    }
     responseEntity = ss.str();
 }
 
@@ -87,11 +97,18 @@ void Response::setResponseBody(std::string content) {
     body = content;
 }
 
+void Response::setHeader(std::string key, std::string value) {
+    this->headers[key] = value;
+}
+
 void Response::setStatus(unsigned int code) {
     switch(code) {
-        case 200:
+        case OK:
              status = "OK";
              break ;
+        case PERMANENTLY_MOVED:
+            status = "Permanently Moved";
+            break ;
         // 4XX status codes
         case BAD_REQUEST:
             status =  "Bad Request";
