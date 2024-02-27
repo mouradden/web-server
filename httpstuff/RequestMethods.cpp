@@ -4,21 +4,24 @@
 #include <sstream>
 #include <vector>
 
-Response buildResponseWithFile(std::string filename) {
+void buildResponseWithFile(Response& response, std::string filename, unsigned int code) {
     std::ostringstream ss;
     std::ifstream file(filename);
-    if (file.fail()) {
-        Response response("HTTP/1.1", NOT_FOUND);
-        response.buildResponse();
-        return (response);
+    if (!(code >= 200 && code <= 208)) {
+        response.buildResponse(code);
+        return ;
     } else {
-        Response response("HTTP/1.1", OK);
-        ss << file.rdbuf();
-        response.setContentType("index.html");
-        response.setContentLength(ss.str().size());
-        response.setResponseBody(ss.str());
-        response.buildResponse();
-        return response;
+        if (file.fail()) {
+                response.buildResponse(NOT_FOUND);
+                return ;
+            } else {
+                ss << file.rdbuf();
+                response.setContentType("index.html");
+                response.setContentLength(ss.str().size());
+                response.setResponseBody(ss.str());
+                response.buildResponse(OK);
+                return ;
+            }
     }
 }
 
@@ -32,28 +35,27 @@ int checkIfLocationExists(std::vector<Location> locations, std::string requested
 
 Response RequestMethod::GET(Request& request, DataConfig config) {
     std::string requestedRessource = request.getRequestRessource();
+    Response response;
     if (requestedRessource.compare("/") == 0) {
-        Response response = buildResponseWithFile(config.getIndex());
+        buildResponseWithFile(response, config.getIndex(), OK);
         return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
         std::vector<Location> locations = config.getLocation();
         int index = checkIfLocationExists(locations, requestedRessource);
         if (index != -1) {
             if (locations[index].methods.get == 0) {
-                Response response("HTTP/1.1", 405);
-                buildResponseWithFile("");
+                buildResponseWithFile(response, "", METHOD_NOT_ALLOWED);
                 return (response);
             }
-            Response response = buildResponseWithFile(locations[index].index);
+            buildResponseWithFile(response, locations[index].index, OK);
             return (response);
         } else {
-            Response response = buildResponseWithFile("");
+            buildResponseWithFile(response, "", NOT_FOUND);
             return (response);
         }
     } else {
-        Response response = buildResponseWithFile(requestedRessource.substr(1));
+        buildResponseWithFile(response, requestedRessource.substr(1), OK);
         return (response);
     }
-    Response response = buildResponseWithFile("");
     return (response);
 }

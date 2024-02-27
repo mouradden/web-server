@@ -17,8 +17,8 @@ class Response {
         std::string responseEntity;
 
     public:
-        Response(std::string httpVersion, unsigned int code);
-        void buildResponse();
+        Response();
+        void buildResponse(unsigned int code);
         void sendResponse(int socket);
 
         Response(const Response& ref);

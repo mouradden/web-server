@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include "RequestMethods.hpp"
+#include <vector>
 
 //  ******** PARSING METHODS ********
 
@@ -58,7 +59,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
 }
 
-int Request::validRequest() {
+int Request::validRequest(DataConfig config) {
     if (headers.find("Transfer-Encoding") != headers.end()) {
         std::cout << "transfer encoding found\n";
         if (headers["Transfer-Encoding"] != "chunked") {
@@ -81,6 +82,15 @@ int Request::validRequest() {
     if (requestEntity.size() > 8000) {
         std::cout << "request entity too large\n";
         return (ENTITY_LENGTH_EXCEEDED);
+    }
+    std::vector<Location> locations = config.getLocation();
+    if (requestRessource[requestRessource.size() - 1] != '/') {
+        std::string requestedRessource = requestRessource.substr(1);
+        for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
+            if (it->location.substr(1, it->location.size() - 2).compare(requestedRessource) == 0) {
+                return (301);
+            }
+        }
     }
     return (0);
 }
@@ -142,12 +152,14 @@ void    Request::printHeaders() {
 //  ******** HANDLER ********
 
 Response Request::handleRequest(DataConfig config) {
-    int code = validRequest();
+    int code = validRequest(config);
     if (code != 0) {
-        Response response("HTTP/1.1", code);
-        response.buildResponse();
+        Response response;
+        response.buildResponse(code);
+        std::cout << response.getResponseEntity();
         return (response);
     }
     Response response = RequestMethod::GET(*this, config);
+    std::cout << response.getResponseEntity();
     return response;
 }

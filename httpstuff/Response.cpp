@@ -23,8 +23,10 @@ std::string getContentType(std::string fileExtension) {
     }
 }
 
-Response::Response(std::string httpVersion, unsigned int code) : httpVersion(httpVersion), code(code) {
-    setStatus(code);
+Response::Response() {
+    httpVersion = "HTTP/1.1";
+    code = 0;
+    status = "";
     contentType = "";
     contentLength = 0;
     body = "";
@@ -53,8 +55,9 @@ Response& Response::operator=(const Response &ref) {
     return (*this);
 }
 
-void Response::buildResponse() {
+void Response::buildResponse(unsigned int code) {
     std::ostringstream ss;
+    setStatus(code);
     ss << httpVersion << " " << code << " " << status << "\r\n" 
     << "Content-Type: " << contentType << "\r\n" 
     << "Content-Length: " << contentLength << "\r\n\r\n" 
