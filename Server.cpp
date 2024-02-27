@@ -32,14 +32,27 @@ void Server::createServer(std::vector<DataConfig> config)
             sockaddr_in address;
             std::memset(&address, 0, sizeof(address));
             address.sin_family = AF_INET; // address family : ipv4
-            address.sin_addr.s_addr = INADDR_ANY;
+            // address.sin_addr.s_addr = INADDR_ANY;
             // address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // specify the IP address to which the server will bind
-            // address.sin_addr.s_addr = inet_addr("127.0.0.1"); // specify the IP address to which the server will bind
+            // std::cout << "host :" << config[i].getHost().c_str() << "\n";
+            // address.sin_addr.s_addr = inet_addr(config[i].getHost().c_str()); // specify the IP address to which the server will bind
+            if (!strcmp(config[i].getHost().c_str(), "localhost"))
+            {
+                address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            }
+            else
+            {
+                // Resolve host to its IP address
+                if (inet_pton(AF_INET, config[i].getHost().c_str(), &address.sin_addr) <= 0) {
+                    std::cerr << "Invalid address or address not supported\n";
+                    return ;
+                }
+            }
             address.sin_port = htons(atoi(ports[j].c_str()));
             serverAddress.push_back(address);
         }
     }
-
+ 
     for (size_t i = 0; i < serverSockets.size(); i++)
     {
         int bindResult = bind(this->getServerSocket(i), reinterpret_cast<sockaddr*>(&(this->serverAddress[i])), sizeof(this->serverAddress[i]));
