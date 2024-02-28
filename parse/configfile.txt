@@ -34,9 +34,9 @@ server {
         return 303 /path/to/blala
     }
 
-    location /slm/ {
+    location /junk/ {
 
-        alias karimslm
+        alias junk
         root slm2
         index slm3
         methods POST
