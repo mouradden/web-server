@@ -145,6 +145,10 @@ std::string Request::getBody() const {
     return (this->body);
 }
 
+std::string Request::getPath() const {
+    return (this->path);
+}
+
 void    Request::printHeaders() {
     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
         std::cout << it->first << " " << it->second << std::endl;
@@ -159,7 +163,7 @@ int Request::buildPath(DataConfig config) {
         std::string requestedLocation = requestRessource.substr(0, requestRessource.find_last_of('/') + 1);
         for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
             if (it->location.compare(requestedLocation) == 0) {
-                if (config.getRoot().empty()) {
+                if (it->root.empty()) {
                     path = config.getRoot() + it->alias.substr(1);
                 } else {
                     path = it->root;
@@ -187,7 +191,6 @@ Response Request::handleRequest(DataConfig config) {
         return (response);
     }
     buildPath(config);
-    std::cout << "path is " << path << std::endl;
     Response response = RequestMethod::GET(*this, config);
     // std::cout << response.getResponseEntity();
     return response;

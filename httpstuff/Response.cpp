@@ -86,7 +86,7 @@ std::string Response::getResponseEntity() {
 // ************ SETTERS ************
 
 void Response::setContentType(std::string fileExtension) {
-    contentType = fileExtension;
+    contentType = getContentType(fileExtension.substr(fileExtension.find_last_of('.') + 1));
 }
 
 void Response::setContentLength(unsigned int length) {

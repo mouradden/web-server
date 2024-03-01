@@ -4,52 +4,41 @@
                 
 server {
 
-    # Listen on port 80 for HTTP requests
     listen 8081
     listen 8082
 
-    # Define the server's domain name
     server_name example.com
     host localhost
     
-    # Define the root directory for serving files
-    root /var/www/html/
+    root /Users/nachab/Desktop/final/
 
     autoindex on
-    # Define default file to serve
     index index.html
 
     # Configure error pages
     error_page 404 /404.html
 
-    # Define location of static files
     location /image/ {
+        alias /../imgs/
         
-        root /var/www/static/
         index index.html
         methods GET
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 303 /path/to/blala
+        return 303 /Users/nachab/Desktop/imgs/
     }
 
-    location /junk/ {
+    location /txt/ {
 
-        
         root slm2
         index slm3
         methods POST
         autoindex off
         cgi_extention   .dd
         cgi_bin      dff   
-        return 305 /path/to/fffa
-    
+        return 305 /path/to/fff
     }
-    location /karim/ {
-
-    
-}
 }
 
 server {

@@ -16,8 +16,9 @@ void buildResponseWithFile(Response& response, std::string filename, unsigned in
                 return ;
             } else {
                 ss << file.rdbuf();
-                response.setContentType("index.html");
+                response.setContentType(filename);
                 response.setContentLength(ss.str().size());
+                std::cout << ss.str().size() << std::endl;
                 response.setResponseBody(ss.str());
                 response.buildResponse(OK);
                 return ;
@@ -37,7 +38,7 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     std::string requestedRessource = request.getRequestRessource();
     Response response;
     if (requestedRessource.compare("/") == 0) {
-        buildResponseWithFile(response, config.getIndex(), OK);
+        buildResponseWithFile(response, request.getPath() +config.getIndex(), OK);
         return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
         std::vector<Location> locations = config.getLocation();
@@ -47,14 +48,14 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
                 buildResponseWithFile(response, "", METHOD_NOT_ALLOWED);
                 return (response);
             }
-            buildResponseWithFile(response, locations[index].index, OK);
+            buildResponseWithFile(response, request.getPath() + locations[index].index, OK);
             return (response);
         } else {
             buildResponseWithFile(response, "", NOT_FOUND);
             return (response);
         }
     } else {
-        buildResponseWithFile(response, requestedRessource.substr(1), OK);
+        buildResponseWithFile(response, request.getPath() + request.getRequestRessource().substr(request.getRequestRessource().find_last_of('/') + 1), OK);
         return (response);
     }
     return (response);

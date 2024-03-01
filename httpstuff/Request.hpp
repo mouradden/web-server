@@ -38,6 +38,7 @@ class Request {
         std::string getHttpVersion() const;
         std::string getHeader(std::string key) const;
         std::string getBody() const;
+        std::string getPath() const;
         Response handleRequest(DataConfig config);
         int buildPath(DataConfig config);
         void printHeaders();
