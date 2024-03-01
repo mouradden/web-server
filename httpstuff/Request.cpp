@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include "RequestMethods.hpp"
+#include <string>
 #include <vector>
 
 //  ******** PARSING METHODS ********
@@ -153,42 +154,41 @@ void    Request::printHeaders() {
 //  ******** HANDLER ********
 
 int Request::buildPath(DataConfig config) {
-    if (requestRessource == "/") {
-        path = config.getRoot();
-        return (0);
-    } else if (requestRessource[requestRessource.size() - 1] == '/' || requestRessource.substr(1).find('/') != std::string::npos) {
+    if (requestRessource[requestRessource.size() - 1] == '/' || requestRessource.substr(1).find('/') != std::string::npos) {
         std::vector<Location> locations = config.getLocation();
+        std::string requestedLocation = requestRessource.substr(0, requestRessource.find_last_of('/') + 1);
         for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
-            if (it->location.compare(requestRessource + "/") == 0) {
+            if (it->location.compare(requestedLocation) == 0) {
                 if (config.getRoot().empty()) {
-                    path = config.getRoot() + it->location;
+                    path = config.getRoot() + it->alias.substr(1);
                 } else {
                     path = it->root;
                 }
             }
         }
         if (path.empty()) {
-            return (404);
+            path = config.getRoot() + requestedLocation.substr(1);
         }
-    } else {
-        path = config.getRoot();
         return (0);
     }
+    path = config.getRoot();
+    return (0);
 }
 
 Response Request::handleRequest(DataConfig config) {
     int errorCode = validRequest(config);
-    int pathCode = buildPath(config);
     if (errorCode != 0) {
         Response response;
         if (errorCode == PERMANENTLY_MOVED) {
             response.setHeader("Location:", requestRessource + "/");
         }
         response.buildResponse(errorCode);
-        std::cout << response.getResponseEntity();
+        // std::cout << response.getResponseEntity();
         return (response);
     }
+    buildPath(config);
+    std::cout << "path is " << path << std::endl;
     Response response = RequestMethod::GET(*this, config);
-    std::cout << response.getResponseEntity();
+    // std::cout << response.getResponseEntity();
     return response;
 }

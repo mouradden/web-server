@@ -13,7 +13,7 @@ server {
     host localhost
     
     # Define the root directory for serving files
-    root /var/www/html /testFolder/file.png karim
+    root /var/www/html/
 
     autoindex on
     # Define default file to serve
@@ -24,7 +24,7 @@ server {
 
     # Define location of static files
     location /image/ {
-        alias /var/www/static/
+        
         root /var/www/static/
         index index.html
         methods GET
@@ -36,7 +36,7 @@ server {
 
     location /junk/ {
 
-        alias junk
+        
         root slm2
         index slm3
         methods POST
@@ -95,10 +95,6 @@ server {
         return 305 /path/to/fffa
     
     }
-    location /karim/ {
-
-    
-}
 }
 server {
 

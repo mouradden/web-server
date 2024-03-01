@@ -92,10 +92,10 @@ int main()
                     if (bytesRead > 0)
                     {
                         DataConfig config = server.getServers()[*it];
-                        std::vector<Location> locations = config.getLocation();
-                        for (size_t i = 0; i < locations.size(); i++) {
-                            std::cout << locations[i].location << std::endl;
-                        }
+                        // std::vector<Location> locations = config.getLocation();
+                        // for (size_t i = 0; i < locations.size(); i++) {
+                        //     std::cout << locations[i].location << std::endl;
+                        // }
                         Request req(buffer);
                         Response response = req.handleRequest(config);
                         response.sendResponse(*it);
