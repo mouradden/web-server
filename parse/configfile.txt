@@ -13,7 +13,7 @@ server {
     host localhost
     
     # Define the root directory for serving files
-    root /var/www/html
+    root /var/www/html /testFolder/file.png karim
 
     autoindex on
     # Define default file to serve
@@ -23,7 +23,7 @@ server {
     error_page 404 /404.html
 
     # Define location of static files
-    location /testFolder/ {
+    location /image/ {
         alias /var/www/static/
         root /var/www/static/
         index index.html

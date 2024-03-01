@@ -111,6 +111,7 @@ int Request::checkAllowedChars(std::string value) {
 Request::Request(std::string buffer) {
     requestEntity = buffer;
     parseRequest(buffer, "\r\n");
+    path = "";    
 }
 
 Request::~Request() {
@@ -151,15 +152,39 @@ void    Request::printHeaders() {
 
 //  ******** HANDLER ********
 
+int Request::buildPath(DataConfig config) {
+    if (requestRessource == "/") {
+        path = config.getRoot();
+        return (0);
+    } else if (requestRessource[requestRessource.size() - 1] == '/' || requestRessource.substr(1).find('/') != std::string::npos) {
+        std::vector<Location> locations = config.getLocation();
+        for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
+            if (it->location.compare(requestRessource + "/") == 0) {
+                if (config.getRoot().empty()) {
+                    path = config.getRoot() + it->location;
+                } else {
+                    path = it->root;
+                }
+            }
+        }
+        if (path.empty()) {
+            return (404);
+        }
+    } else {
+        path = config.getRoot();
+        return (0);
+    }
+}
+
 Response Request::handleRequest(DataConfig config) {
-    int code = validRequest(config);
-    if (code != 0) {
-        std::cout << "works\n" << std::endl;
+    int errorCode = validRequest(config);
+    int pathCode = buildPath(config);
+    if (errorCode != 0) {
         Response response;
-        if (code == PERMANENTLY_MOVED) {
+        if (errorCode == PERMANENTLY_MOVED) {
             response.setHeader("Location:", requestRessource + "/");
         }
-        response.buildResponse(code);
+        response.buildResponse(errorCode);
         std::cout << response.getResponseEntity();
         return (response);
     }

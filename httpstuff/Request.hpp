@@ -16,6 +16,8 @@ class Request {
         std::map<std::string, std::string> headers;
         std::string body;
 
+        std::string path;
+
         // validation
         int checkAllowedChars(std::string value);
         int validRequest(DataConfig config);
@@ -37,5 +39,6 @@ class Request {
         std::string getHeader(std::string key) const;
         std::string getBody() const;
         Response handleRequest(DataConfig config);
+        int buildPath(DataConfig config);
         void printHeaders();
 };
