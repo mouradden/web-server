@@ -9,6 +9,8 @@ std::string& Request::trimSpaces(std::string& val) {
     std::string whiteSpaces = "\t ";
     val.erase(val.find_last_not_of(whiteSpaces) + 1);
     val.erase(0, val.find_first_not_of(whiteSpaces));
+    if (val[val.size() - 1] == '?')
+        val = val.substr(0, val.size() - 1);
     return (val);
 }
 
@@ -22,6 +24,7 @@ void Request::parseRequestLine(std::string buffer) {
     }
     this->requestMethod = trimSpaces(tokens[0]);
     this->requestRessource = trimSpaces(tokens[1]);
+    std::cout << "requested ressource == " << this->requestRessource << std::endl;
     this->httpVersion = trimSpaces(tokens[2]);
 }
 
