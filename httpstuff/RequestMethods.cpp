@@ -38,7 +38,7 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     std::string requestedRessource = request.getRequestRessource();
     Response response;
     if (requestedRessource.compare("/") == 0) {
-        buildResponseWithFile(response, request.getPath() +config.getIndex(), OK);
+        buildResponseWithFile(response, request.getPath() + config.getIndex(), OK);
         return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
         std::vector<Location> locations = config.getLocation();

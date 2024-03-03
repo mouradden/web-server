@@ -1,0 +1,5 @@
+/.devcontainer/
+/.github/
+DS_STORE
+*.o
+./webserv

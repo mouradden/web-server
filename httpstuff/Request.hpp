@@ -17,6 +17,7 @@ class Request {
         std::string body;
 
         std::string path;
+        std::string location;
 
         // validation
         int checkAllowedChars(std::string value);
@@ -41,5 +42,6 @@ class Request {
         std::string getPath() const;
         Response handleRequest(DataConfig config);
         int buildPath(DataConfig config);
+        std::vector<Location>::iterator checkIfRedirection(DataConfig config);
         void printHeaders();
 };

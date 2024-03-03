@@ -77,6 +77,16 @@ std::vector<Location>    DataConfig::getLocation()
 {
     return this->vectorLocation;
 }
+
+std::vector<Location>::iterator DataConfig::getSpecificLocation(std::string location) {
+    for (std::vector<Location>::iterator it = vectorLocation.begin(); it != vectorLocation.end(); it++) {
+        if (it->location.compare(location) == 0) {
+            return (it);
+        }
+    }
+    return (vectorLocation.end());
+}
+
 void    DataConfig::setLocation(std::string _location)
 {
     Location location;

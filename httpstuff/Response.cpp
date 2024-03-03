@@ -109,6 +109,9 @@ void Response::setStatus(unsigned int code) {
         case PERMANENTLY_MOVED:
             status = "Permanently Moved";
             break ;
+        case Found:
+            status = "Found";
+            break ;
         // 4XX status codes
         case BAD_REQUEST:
             status =  "Bad Request";
