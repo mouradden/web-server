@@ -49,6 +49,10 @@ std::string Request::getPath() const {
     return (this->path);
 }
 
+std::string Request::getLocation() const {
+    return (this->location);
+}
+
 std::string& Request::trimSpaces(std::string& val) {
     std::string whiteSpaces = "\t ";
     val.erase(val.find_last_not_of(whiteSpaces) + 1);
@@ -154,27 +158,26 @@ int Request::validRequest(DataConfig config) {
     return (0);
 }
 
-int Request::buildPath(DataConfig config) {
-    if (requestRessource[requestRessource.size() - 1] == '/') {
-        std::vector<Location> locations = config.getLocation();
+void Request::buildPath(DataConfig config) {
+    if (requestRessource.substr(1).find('/') != std::string::npos) {
+        // if a directory is requested search if it's exists in a location
         std::string requestedLocation = requestRessource.substr(0, requestRessource.find_last_of('/') + 1);
-        for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
-            if (it->location.compare(requestedLocation) == 0) {
-                location = it->location;
-                if (it->root.empty()) {
-                    path = config.getRoot() + it->alias.substr(1);
-                } else {
-                    path = it->root;
-                }
+        std::vector<Location>::iterator locationData = config.getSpecificLocation(requestedLocation);
+        if (locationData != config.getLocation().end()) {
+            this->location = locationData->location;
+            if (locationData->root.empty() && locationData->alias.empty()) {
+                path = config.getRoot();
+            } else if (locationData->root.empty()) {
+                path = config.getRoot() + locationData->alias.substr(1);
+            } else {
+                path = locationData->root;
             }
-        }
-        if (path.empty()) {
+        } else {
             path = config.getRoot() + requestedLocation.substr(1);
         }
-        return (0);
+    } else {
+        path = config.getRoot();
     }
-    path = config.getRoot();
-    return (0);
 }
 
 //  ******** HANDLER ********

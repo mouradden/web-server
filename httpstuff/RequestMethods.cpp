@@ -26,37 +26,39 @@ void buildResponseWithFile(Response& response, std::string filename, unsigned in
     }
 }
 
-int checkIfLocationExists(std::vector<Location> locations, std::string requestedRessource) {
-    for (size_t i = 0; i < locations.size(); i++) {
-        if (locations[i].location.compare(requestedRessource) == 0)
-            return (i);
-    }
-    return (-1);
-}
 
 Response RequestMethod::GET(Request& request, DataConfig config) {
     std::string requestedRessource = request.getRequestRessource();
     Response response;
     if (requestedRessource.compare("/") == 0) {
+        // request is empty, send index of root
         buildResponseWithFile(response, request.getPath() + config.getIndex(), OK);
         return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
-        std::vector<Location> locations = config.getLocation();
-        int index = checkIfLocationExists(locations, requestedRessource);
-        if (index != -1) {
-            if (locations[index].methods.get == 0) {
+        // if request wants a directory
+        std::vector<Location>::iterator locationData = config.getSpecificLocation(request.getLocation());
+        if (locationData != config.getLocation().end()) {
+            if (locationData->methods.get == 0) {
+                // if the location is found but the http method isn't allowed
                 buildResponseWithFile(response, "", METHOD_NOT_ALLOWED);
-                return (response);
+            } else {
+                // if the location is found and the http method is allowed
+                buildResponseWithFile(response, request.getPath() + locationData->index, OK);
             }
-            buildResponseWithFile(response, request.getPath() + locations[index].index, OK);
-            return (response);
         } else {
-            buildResponseWithFile(response, "", NOT_FOUND);
-            return (response);
+            // directory isn't present in the locations, try to send a response with the index of the directory
+            buildResponseWithFile(response, request.getPath() + "index.html", OK);
         }
     } else {
-        buildResponseWithFile(response, request.getPath() + request.getRequestRessource().substr(request.getRequestRessource().find_last_of('/') + 1), OK);
-        return (response);
+        // specific ressource is requested instead of default
+        if (requestedRessource.substr(1).find('/') != std::string::npos) {
+            // if request has a directory then trim the request to contain the file only
+            size_t pos = requestedRessource.find('/', 1);
+            buildResponseWithFile(response, request.getPath() + requestedRessource.substr(pos + 1), OK);
+        } else {
+            // request doesn't have a dir
+            buildResponseWithFile(response, request.getPath() + requestedRessource.substr(1), OK);
+        }
     }
     return (response);
 }

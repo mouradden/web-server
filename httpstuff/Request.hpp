@@ -40,8 +40,8 @@ class Request {
         std::string getHeader(std::string key) const;
         std::string getBody() const;
         std::string getPath() const;
+        std::string getLocation() const;
         Response handleRequest(DataConfig config);
-        int buildPath(DataConfig config);
-        std::vector<Location>::iterator checkIfRedirection(DataConfig config);
+        void buildPath(DataConfig config);
         void printHeaders();
 };
