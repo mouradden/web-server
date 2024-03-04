@@ -73,7 +73,7 @@ void    DataConfig::setErrorPage(std::string error, std::string page)
     this->errorPage.push_back(newErrorPage);
 }
 
-std::vector<Location>    DataConfig::getLocation()
+std::vector<Location>&    DataConfig::getLocation()
 {
     return this->vectorLocation;
 }

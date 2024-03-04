@@ -72,7 +72,6 @@ void Request::parseRequestLine(std::string buffer) {
     }
     this->requestMethod = trimSpaces(tokens[0]);
     this->requestRessource = trimSpaces(tokens[1]);
-    std::cout << "requested ressource == " << this->requestRessource << std::endl;
     this->httpVersion = trimSpaces(tokens[2]);
 }
 
@@ -128,7 +127,7 @@ void    Request::printHeaders() {
     }
 }
 
-int Request::validRequest(DataConfig config) {
+int Request::validRequest() {
     if (headers.find("Transfer-Encoding") != headers.end()) {
         std::cout << "transfer encoding found\n";
         if (headers["Transfer-Encoding"] != "chunked") {
@@ -183,7 +182,7 @@ void Request::buildPath(DataConfig config) {
 //  ******** HANDLER ********
 
 Response Request::handleRequest(DataConfig config) {
-    int errorCode = validRequest(config);
+    int errorCode = validRequest();
     if (errorCode != 0) {
         Response response;
         if (errorCode == PERMANENTLY_MOVED) {

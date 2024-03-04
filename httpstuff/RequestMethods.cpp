@@ -18,7 +18,6 @@ void buildResponseWithFile(Response& response, std::string filename, unsigned in
                 ss << file.rdbuf();
                 response.setContentType(filename);
                 response.setContentLength(ss.str().size());
-                std::cout << ss.str().size() << std::endl;
                 response.setResponseBody(ss.str());
                 response.buildResponse(OK);
                 return ;

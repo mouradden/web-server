@@ -90,7 +90,7 @@ class DataConfig
         void    setHost(std::string host);
         int    getAutoIndex();
         void    setAutoIndex(int autoIndex);
-        std::vector<Location>    getLocation();
+        std::vector<Location>&    getLocation();
         std::vector<Location>::iterator getSpecificLocation(std::string location);
         void    setLocation(std::string _location);
         void    setLocationRoot(std::string root);

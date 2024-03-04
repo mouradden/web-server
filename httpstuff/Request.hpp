@@ -21,7 +21,7 @@ class Request {
 
         // validation
         int checkAllowedChars(std::string value);
-        int validRequest(DataConfig config);
+        int validRequest();
 
         // parsing
         void parseRequest(std::string buffer, std::string delim);
