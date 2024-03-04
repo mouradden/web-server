@@ -195,7 +195,7 @@ Response Request::handleRequest(DataConfig config) {
     buildPath(config);
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (locationData != config.getLocation().end()) {
-        // if location has redirection return it.
+        std::cout << locationData->_return.path << std::endl;
     }
     Response response = RequestMethod::GET(*this, config);
     // std::cout << response.getResponseEntity();

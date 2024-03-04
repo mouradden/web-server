@@ -16,6 +16,15 @@ void buildResponseWithFile(Response& response, std::string filename, unsigned in
                 return ;
             } else {
                 ss << file.rdbuf();
+                // if (ss.str().size() > 2000) {
+                //     // std::cout << "transfer needs to be chunked\n";
+                //     response.setContentType(filename);
+                //     size_t nread = 1;
+                //     std::string buffer;
+                //     while (nread != 0) {
+                //         nread = 
+                //     }
+                // }
                 response.setContentType(filename);
                 response.setContentLength(ss.str().size());
                 response.setResponseBody(ss.str());

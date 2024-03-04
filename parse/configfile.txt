@@ -26,7 +26,7 @@ server {
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 303 /Users/nachab/Desktop/imgs/
+        return 302 /Users/nachab/Desktop/imgs/
     }
 
     location /txt/ {
@@ -69,7 +69,7 @@ server {
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 303 /path/to/blala
+        return 302 /path/to/blala
     }
 
     location /slm/ {
