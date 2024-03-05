@@ -7,52 +7,38 @@
 void sendChunks(Response &response, std::string filename, unsigned int code) {
     std::ostringstream ss;
     if (response.getState() == 1) {
-        code = 50;
-        ss << "HTTP/1.1 " << OK << " OK\r\n";
+        ss << "HTTP/1.1 " << code << " OK\r\n";
+        // content type will change, this function is just for testing rn
         ss << "Content-Type: jpeg\r\n";
         ss << "Transfer-Encoding: chunked\r\n";
-        // response.setContentType(filename);
-        // response.setHeader("Transfer-Encoding: ", "chunked");
-        // response.buildResponse(code);
+        response.setResponseEntity(ss.str());
+        response.setState(2);
+    } else if (response.getState() == 2) {
+        // reset the response that'll be sent
+        response.setResponseEntity("");
         std::ifstream file(filename);
-        // if (file.fail()) {
-        //     response.setState(0);
-        //     ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
-        //     response.setResponseEntity(ss.str());
-        //     return ;
-        // }
+        if (!file.is_open()) {
+            response.setState(0);
+            ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
+            response.setResponseEntity(ss.str());
+            return ;
+        }
         if (response.getFileOffset() != 0) {
             file.seekg(response.getFileOffset());
         }
-        int buffersize = 100000;
-        char buffer[buffersize];
+        int buffersize = 100;
+        char buffer[buffersize - 1];
         file.read(buffer, buffersize);
         std::streamsize bytesread = file.gcount();
-        std::cout << "have successfuly read << **" << bytesread << std::endl;
-        response.setFileOffset(bytesread);
-        ss << bytesread << "\r\n" << buffer << "\r\n";
+        buffer[bytesread] = '\0';
+        response.setFileOffset(response.getFileOffset() + bytesread);
+        ss << std::hex << bytesread + 2 << "\r\n" << buffer << "\r\n";
+        if (file.eof()) {
+            ss << "0\r\n\r\n";
+        }
         response.setResponseEntity(ss.str());
-        response.setState(2);
-        std::cout << response.getResponseEntity() << std::endl;
+        file.close();
     }
-    // } else if (response.getState() == 2) {
-    //     std::ifstream file(filename);
-    //     if (file.fail()) {
-    //         response.setState(0);
-    //         ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
-    //         response.setResponseEntity(ss.str());
-    //         return ;
-    //     }
-    //     if (response.getFileOffset() != 0) {
-    //         file.seekg(response.getFileOffset());
-    //     }
-    //     int buffersize = 10;
-    //     char buffer[buffersize];
-    //     file.read(buffer, buffersize);
-    //     std::streamsize bytesread = file.gcount();
-    //     response.setFileOffset(bytesread);
-    //     ss << bytesread << "\r\n" << buffer << "\r\n";
-    // }
 }
 
 void buildResponseWithFile(Response& response, std::string filename, unsigned int code) {
