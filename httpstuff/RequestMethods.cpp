@@ -4,21 +4,20 @@
 #include <sstream>
 #include <vector>
 
-void sendChunks(Response &response, std::string filename, unsigned int code) {
+void setChunkedResponse(Response &response, std::string filename, unsigned int code) {
     std::ostringstream ss;
     if (response.getState() == 1) {
-        ss << "HTTP/1.1 " << code << " OK\r\n";
-        // content type will change, this function is just for testing rn
-        ss << "Content-Type: jpeg\r\n";
+        response.setStatus(code);
+        ss << "HTTP/1.1 " << code << " " << response.getStatus() << "\r\n";
+        ss << "Content-Type: " << response.getMimeType(filename.substr(filename.find_last_of('.') + 1)) << "\r\n";
         ss << "Transfer-Encoding: chunked\r\n";
         response.setResponseEntity(ss.str());
         response.setState(2);
     } else if (response.getState() == 2) {
-        // reset the response that'll be sent
         response.setResponseEntity("");
         std::ifstream file(filename);
         if (!file.is_open()) {
-            response.setState(0);
+            response.setState(-1);
             ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
             response.setResponseEntity(ss.str());
             return ;
@@ -35,6 +34,7 @@ void sendChunks(Response &response, std::string filename, unsigned int code) {
         ss << std::hex << bytesread + 2 << "\r\n" << buffer << "\r\n";
         if (file.eof()) {
             ss << "0\r\n\r\n";
+            response.setState(-1);
         }
         response.setResponseEntity(ss.str());
         file.close();
@@ -57,7 +57,7 @@ void buildResponseWithFile(Response& response, std::string filename, unsigned in
                     if (response.getState() == 0) {
                         response.setState(1);
                     }
-                    sendChunks(response, filename, OK);
+                    setChunkedResponse(response, filename, OK);
                 } else {
                     response.setContentType(filename);
                     response.setContentLength(ss.str().size());

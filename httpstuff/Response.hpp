@@ -41,10 +41,10 @@ class Response {
         void setResponseEntity(std::string response);
         void setFileOffset(int offset);
 
-
         std::string getResponseEntity();
+        std::string getStatus();
         int getSocket();
         int getState();
         int getFileOffset();
-
+        std::string getMimeType(std::string fileExtension);
 };

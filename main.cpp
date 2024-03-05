@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include <fstream>
 #include <vector>
+#include <list>
 #include "httpstuff/Request.hpp"
 #include "httpstuff/Response.hpp"
 #include "parse/DataConfig.hpp"
@@ -12,12 +13,15 @@
 // 
 // close socket
 
+bool shouldRemove(Response &r) {
+    return (r.getState() == -1);
+}
 
 int main()
 {
     Server server;
     ParseConfigFile config;
-    std::vector<Response> chunkedResponses;
+    std::list<Response> chunkedResponses;
     config.parser("./parse/configfile.txt");
     for (size_t i = 0; i < config.getData().size(); i++)
     {
@@ -95,16 +99,15 @@ int main()
                         std::cout << "***** handling request for socket == " << *it << std::endl;
                         DataConfig config = server.getServers()[*it];
                         Request req(buffer);
-                        for (size_t i = 0; i < chunkedResponses.size(); i++) {
-                            if (chunkedResponses[i].getSocket() == *it) {
-                                std::cout << "found response with chunked encoding in socket == " << *it << std::endl;
-                            }
-                        }
                         Response response = req.handleRequest(config);
                         response.sendResponse(*it);
-                        if (response.getState() != 0) {
+                        if (response.getState() > 2) {
                             response.setSocket(*it);
                             chunkedResponses.push_back(response);
+                        } else if (response.getState() == -1) {
+                            if (chunkedResponses.size() > 0) {
+                                chunkedResponses.remove_if(shouldRemove);
+                            }
                         }
                     } 
                     else if (bytesRead == 0)

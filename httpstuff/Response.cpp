@@ -2,7 +2,7 @@
 #include "../Server.hpp"
 #include <sstream>
 
-std::string getContentType(std::string fileExtension) {
+std::string Response::getMimeType(std::string fileExtension) {
     std::map<std::string, std::string> contentType;
     contentType.insert(std::make_pair("txt", "text/plain"));
     contentType.insert(std::make_pair("html", "text/html"));
@@ -100,6 +100,10 @@ void Response::sendResponse(int socket) {
     send(socket, responseEntity.c_str(), responseEntity.size(), 0);
 }
 
+std::string Response::getStatus() {
+    return (status);
+}
+
 std::string Response::getResponseEntity() {
     return (responseEntity);
 }
@@ -112,6 +116,7 @@ int Response::getState() {
     return (state);
 }
 
+
 int Response::getFileOffset() {
     return (offset);
 }
@@ -119,7 +124,7 @@ int Response::getFileOffset() {
 // ************ SETTERS ************
 
 void Response::setContentType(std::string fileExtension) {
-    contentType = getContentType(fileExtension.substr(fileExtension.find_last_of('.') + 1));
+    contentType = getMimeType(fileExtension.substr(fileExtension.find_last_of('.') + 1));
 }
 
 void Response::setContentLength(unsigned int length) {
