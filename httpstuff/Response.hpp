@@ -18,6 +18,11 @@ class Response {
         std::string body;
         std::string responseEntity;
 
+        // chunked related stuff
+        int socket;
+        int state;
+        int offset;
+
     public:
         Response();
         void buildResponse(unsigned int code);
@@ -31,6 +36,15 @@ class Response {
         void setContentLength(unsigned int length);
         void setResponseBody(std::string content);
         void setHeader(std::string key, std::string value);
+        void setSocket(int socket);
+        void setState(int state);
+        void setResponseEntity(std::string response);
+        void setFileOffset(int offset);
+
 
         std::string getResponseEntity();
+        int getSocket();
+        int getState();
+        int getFileOffset();
+
 };

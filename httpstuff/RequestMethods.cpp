@@ -4,6 +4,57 @@
 #include <sstream>
 #include <vector>
 
+void sendChunks(Response &response, std::string filename, unsigned int code) {
+    std::ostringstream ss;
+    if (response.getState() == 1) {
+        code = 50;
+        ss << "HTTP/1.1 " << OK << " OK\r\n";
+        ss << "Content-Type: jpeg\r\n";
+        ss << "Transfer-Encoding: chunked\r\n";
+        // response.setContentType(filename);
+        // response.setHeader("Transfer-Encoding: ", "chunked");
+        // response.buildResponse(code);
+        std::ifstream file(filename);
+        // if (file.fail()) {
+        //     response.setState(0);
+        //     ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
+        //     response.setResponseEntity(ss.str());
+        //     return ;
+        // }
+        if (response.getFileOffset() != 0) {
+            file.seekg(response.getFileOffset());
+        }
+        int buffersize = 100000;
+        char buffer[buffersize];
+        file.read(buffer, buffersize);
+        std::streamsize bytesread = file.gcount();
+        std::cout << "have successfuly read << **" << bytesread << std::endl;
+        response.setFileOffset(bytesread);
+        ss << bytesread << "\r\n" << buffer << "\r\n";
+        response.setResponseEntity(ss.str());
+        response.setState(2);
+        std::cout << response.getResponseEntity() << std::endl;
+    }
+    // } else if (response.getState() == 2) {
+    //     std::ifstream file(filename);
+    //     if (file.fail()) {
+    //         response.setState(0);
+    //         ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
+    //         response.setResponseEntity(ss.str());
+    //         return ;
+    //     }
+    //     if (response.getFileOffset() != 0) {
+    //         file.seekg(response.getFileOffset());
+    //     }
+    //     int buffersize = 10;
+    //     char buffer[buffersize];
+    //     file.read(buffer, buffersize);
+    //     std::streamsize bytesread = file.gcount();
+    //     response.setFileOffset(bytesread);
+    //     ss << bytesread << "\r\n" << buffer << "\r\n";
+    // }
+}
+
 void buildResponseWithFile(Response& response, std::string filename, unsigned int code) {
     std::ostringstream ss;
     std::ifstream file(filename);
@@ -16,19 +67,17 @@ void buildResponseWithFile(Response& response, std::string filename, unsigned in
                 return ;
             } else {
                 ss << file.rdbuf();
-                // if (ss.str().size() > 2000) {
-                //     // std::cout << "transfer needs to be chunked\n";
-                //     response.setContentType(filename);
-                //     size_t nread = 1;
-                //     std::string buffer;
-                //     while (nread != 0) {
-                //         nread = 
-                //     }
-                // }
-                response.setContentType(filename);
-                response.setContentLength(ss.str().size());
-                response.setResponseBody(ss.str());
-                response.buildResponse(OK);
+                if (ss.str().size() > 100000) {
+                    if (response.getState() == 0) {
+                        response.setState(1);
+                    }
+                    sendChunks(response, filename, OK);
+                } else {
+                    response.setContentType(filename);
+                    response.setContentLength(ss.str().size());
+                    response.setResponseBody(ss.str());
+                    response.buildResponse(OK);
+                }
                 return ;
             }
     }

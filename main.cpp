@@ -17,6 +17,7 @@ int main()
 {
     Server server;
     ParseConfigFile config;
+    std::vector<Response> chunkedResponses;
     config.parser("./parse/configfile.txt");
     for (size_t i = 0; i < config.getData().size(); i++)
     {
@@ -91,14 +92,20 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
+                        std::cout << "***** handling request for socket == " << *it << std::endl;
                         DataConfig config = server.getServers()[*it];
-                        // std::vector<Location> locations = config.getLocation();
-                        // for (size_t i = 0; i < locations.size(); i++) {
-                        //     std::cout << locations[i].location << std::endl;
-                        // }
                         Request req(buffer);
+                        for (size_t i = 0; i < chunkedResponses.size(); i++) {
+                            if (chunkedResponses[i].getSocket() == *it) {
+                                std::cout << "found response with chunked encoding in socket == " << *it << std::endl;
+                            }
+                        }
                         Response response = req.handleRequest(config);
                         response.sendResponse(*it);
+                        if (response.getState() != 0) {
+                            response.setSocket(*it);
+                            chunkedResponses.push_back(response);
+                        }
                     } 
                     else if (bytesRead == 0)
                     {
