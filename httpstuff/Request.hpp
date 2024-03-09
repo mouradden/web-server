@@ -41,7 +41,9 @@ class Request {
         std::string getBody() const;
         std::string getPath() const;
         std::string getLocation() const;
+        int methodAllowed(DataConfig config);
         Response handleRequest(DataConfig config);
+        Response runHttpMethod(DataConfig config);
         void buildPath(DataConfig config);
         void printHeaders();
 };

@@ -4,69 +4,76 @@
 #include <sstream>
 #include <vector>
 
-void setChunkedResponse(Response &response, std::string filename, unsigned int code) {
+std::string generateHTML(const char* path) {
     std::ostringstream ss;
-    if (response.getState() == 1) {
-        response.setStatus(code);
-        ss << "HTTP/1.1 " << code << " " << response.getStatus() << "\r\n";
-        ss << "Content-Type: " << response.getMimeType(filename.substr(filename.find_last_of('.') + 1)) << "\r\n";
-        ss << "Transfer-Encoding: chunked\r\n";
-        response.setResponseEntity(ss.str());
-        response.setState(2);
-    } else if (response.getState() == 2) {
-        response.setResponseEntity("");
-        std::ifstream file(filename);
-        if (!file.is_open()) {
-            response.setState(-1);
-            ss << "HTTP/1.1" << NOT_FOUND << "Not Found\r\n";
-            response.setResponseEntity(ss.str());
-            return ;
-        }
-        if (response.getFileOffset() != 0) {
-            file.seekg(response.getFileOffset());
-        }
-        int buffersize = 100;
-        char buffer[buffersize - 1];
-        file.read(buffer, buffersize);
-        std::streamsize bytesread = file.gcount();
-        buffer[bytesread] = '\0';
-        response.setFileOffset(response.getFileOffset() + bytesread);
-        ss << std::hex << bytesread + 2 << "\r\n" << buffer << "\r\n";
-        if (file.eof()) {
-            ss << "0\r\n\r\n";
-            response.setState(-1);
-        }
-        response.setResponseEntity(ss.str());
-        file.close();
+    DIR *dir = opendir(path);
+    if (!dir) {
+        return "";
     }
+
+    ss << "<html><head><title>Directory Listing</title><style>h1 {text-align:center;}</style></head><body><h1>Directory Listing</h1><ul>";
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_name[0] != '.')
+            ss << "<li>" << entry->d_name << "</li>";
+    }
+
+    ss << "</ul></body></html>";
+    closedir(dir);
+    return (ss.str());
 }
 
-void buildResponseWithFile(Response& response, std::string filename, unsigned int code) {
+Response buildResponseWithFile(Request request, DataConfig config, std::string path, unsigned int code) {
     std::ostringstream ss;
-    std::ifstream file(filename);
+    Response response;
     if (!(code >= 200 && code <= 208)) {
         response.buildResponse(code);
-        return ;
     } else {
-        if (file.fail()) {
-                response.buildResponse(NOT_FOUND);
-                return ;
-            } else {
-                ss << file.rdbuf();
-                if (ss.str().size() > 100000) {
-                    if (response.getState() == 0) {
-                        response.setState(1);
+        if (path.back() == '/') {
+            std::vector<Location>::iterator locationData = config.getSpecificLocation(request.getLocation());
+            if (locationData != config.getLocation().end()) {
+                std::ifstream file(path + locationData->index);
+                if (!file.is_open()) {
+                    if (locationData->autoIndex) {
+                        ss << generateHTML(path.c_str());
+                        response.setContentType(".html");
+                        response.setContentLength(ss.str().size());
+                        response.setResponseBody(ss.str());
+                        response.buildResponse(OK);
+                    } else {
+                        response.buildResponse(FORBIDDEN);
                     }
-                    setChunkedResponse(response, filename, OK);
                 } else {
-                    response.setContentType(filename);
+                    ss << file.rdbuf();
+                    response.setContentType(".html");
                     response.setContentLength(ss.str().size());
                     response.setResponseBody(ss.str());
                     response.buildResponse(OK);
                 }
-                return ;
+            } else {
+                std::ifstream file(path + "index.html");
+                ss << file.rdbuf();
+                response.setContentType(".html");
+                response.setContentLength(ss.str().size());
+                response.setResponseBody(ss.str());
+                response.buildResponse(OK);
             }
+        }
+        else {
+            std::ifstream file(path);
+            if (!file.is_open()) {
+                response.buildResponse(NOT_FOUND);
+            } else {
+                ss << file.rdbuf();
+                response.setContentType(path);
+                response.setContentLength(ss.str().size());
+                response.setResponseBody(ss.str());
+                response.buildResponse(OK);
+            }
+        } 
     }
+    return (response);
 }
 
 
@@ -75,32 +82,20 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     Response response;
     if (requestedRessource.compare("/") == 0) {
         // request is empty, send index of root
-        buildResponseWithFile(response, request.getPath() + config.getIndex(), OK);
+        response = buildResponseWithFile(request, config, request.getPath() + config.getIndex(), OK);
         return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // if request wants a directory
-        std::vector<Location>::iterator locationData = config.getSpecificLocation(request.getLocation());
-        if (locationData != config.getLocation().end()) {
-            if (locationData->methods.get == 0) {
-                // if the location is found but the http method isn't allowed
-                buildResponseWithFile(response, "", METHOD_NOT_ALLOWED);
-            } else {
-                // if the location is found and the http method is allowed
-                buildResponseWithFile(response, request.getPath() + locationData->index, OK);
-            }
-        } else {
-            // directory isn't present in the locations, try to send a response with the index of the directory
-            buildResponseWithFile(response, request.getPath() + "index.html", OK);
-        }
+        response = buildResponseWithFile(request, config, request.getPath(), OK);
     } else {
         // specific ressource is requested instead of default
         if (requestedRessource.substr(1).find('/') != std::string::npos) {
             // if request has a directory then trim the request to contain the file only
             size_t pos = requestedRessource.find('/', 1);
-            buildResponseWithFile(response, request.getPath() + requestedRessource.substr(pos + 1), OK);
+            response = buildResponseWithFile(request, config, request.getPath() + requestedRessource.substr(pos + 1), OK);
         } else {
             // request doesn't have a dir
-            buildResponseWithFile(response, request.getPath() + requestedRessource.substr(1), OK);
+            response = buildResponseWithFile(request, config, request.getPath() + requestedRessource.substr(1), OK);
         }
     }
     return (response);
