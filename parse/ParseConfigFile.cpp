@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/03/09 21:43:28 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/03/09 22:17:42 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -407,7 +407,7 @@ void    ParseConfigFile::parser(std::string nameFile)
             
             // std::cout << "hiii "<< this->data[0].getLocation()[0]._return.path;
             // std::cout << this->data[0].getRoot() << std::endl;
-            exit(0);
+            // exit(0);
     }
     else 
         std::cout << "error happen with this file" << std::endl;

@@ -134,9 +134,11 @@ int Request::validRequest() {
             return (501);
         }
     }
-    if (requestMethod == "POST" && (headers.find("Transfer-Encoding") == headers.end() || headers.find("Content-Length") == headers.end())) {
+    // if (requestMethod == "POST" && (headers.find("Transfer-Encoding") == headers.end() || headers.find("Content-Length") == headers.end())) {
+    //     return (BAD_REQUEST);
+    // }
+    if (requestMethod == "POST" && (headers.find("Content-Length") == headers.end()))
         return (BAD_REQUEST);
-    }
     if (checkAllowedChars(requestRessource) == 400) {
         std::cout << "request uri : Bad request\n";
         return (BAD_REQUEST);
