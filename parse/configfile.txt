@@ -98,7 +98,7 @@ server {
     root /var/www/html
 
     autoindex on
-    # Define default file to serve
+    # Define     file to serve
     index mourad.html
 
     # Configure error pages

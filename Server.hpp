@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <fcntl.h>
+#include <dirent.h>
 
 #include <vector>
 #include <map>
@@ -52,7 +53,8 @@ enum statusCodes {
     // SERVER DOESN'T SUPPORT MEDIA TYPE OF REQUEST ENTITY
     UNSUPPORTED_MEDIA_TYPE = 415,
     RANGE_NOT_SATISFIABLE = 416,
-    EXPECTATION_FAILED = 417
+    EXPECTATION_FAILED = 417,
+    NOT_IMPLEMENTED = 501
 };
 
 class Server

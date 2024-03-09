@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include "RequestMethods.hpp"
+#include "Response.hpp"
 #include <string>
 #include <vector>
 
@@ -156,6 +157,9 @@ int Request::validRequest() {
     if (requestRessource.find('.') == std::string::npos && requestRessource[requestRessource.size() - 1] != '/') {
         return (PERMANENTLY_MOVED);
     }
+    if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
+        return (NOT_IMPLEMENTED);
+    }
     return (0);
 }
 
@@ -183,6 +187,34 @@ void Request::buildPath(DataConfig config) {
 
 //  ******** HANDLER ********
 
+int Request::methodAllowed(DataConfig config) {
+    std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
+    if (requestMethod.compare("GET") == 0) {
+        if (locationData->methods.get == 0)
+            return (0);
+    } else if (requestMethod.compare("POST") == 0) {
+        if (locationData->methods.post == 0)
+            return (0);
+    } else if (requestMethod.compare("DELETE") == 0) {
+        if (locationData->methods._delete == 0)
+            return (0);
+    }
+    return (1);
+}
+
+Response Request::runHttpMethod(DataConfig config) {
+    Response response;
+    if (requestMethod.compare("GET") == 0) {
+        response = RequestMethod::GET(*this, config);
+    } 
+    // else if (requestMethod.compare("POST") == 0) {
+    //     response = RequestMethod::POST(*this, config);
+    // } else if (requestMethod.compare("DELETE") == 0) {
+    //     response = RequestMethod::DELETE(*this, config);
+    // }
+    return (response);
+}
+
 Response Request::handleRequest(DataConfig config) {
     int errorCode = validRequest();
     if (errorCode != 0) {
@@ -191,15 +223,17 @@ Response Request::handleRequest(DataConfig config) {
             response.setHeader("Location:", requestRessource + "/");
         }
         response.buildResponse(errorCode);
-        // std::cout << response.getResponseEntity();
         return (response);
     }
     buildPath(config);
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (locationData != config.getLocation().end()) {
-        std::cout << locationData->_return.path << std::endl;
+        if (!methodAllowed(config)) {
+            Response response;
+            response.buildResponse(METHOD_NOT_ALLOWED);
+            return (response);
+        }
     }
-    Response response = RequestMethod::GET(*this, config);
-    // std::cout << response.getResponseEntity();
+    Response response = runHttpMethod(config);
     return response;
 }

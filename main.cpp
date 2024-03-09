@@ -13,10 +13,6 @@
 // 
 // close socket
 
-bool shouldRemove(Response &r) {
-    return (r.getState() == -1);
-}
-
 int main()
 {
     Server server;
@@ -96,19 +92,10 @@ int main()
                     ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
                     if (bytesRead > 0)
                     {
-                        std::cout << "***** handling request for socket == " << *it << std::endl;
                         DataConfig config = server.getServers()[*it];
                         Request req(buffer);
                         Response response = req.handleRequest(config);
                         response.sendResponse(*it);
-                        if (response.getState() > 2) {
-                            response.setSocket(*it);
-                            chunkedResponses.push_back(response);
-                        } else if (response.getState() == -1) {
-                            if (chunkedResponses.size() > 0) {
-                                chunkedResponses.remove_if(shouldRemove);
-                            }
-                        }
                     } 
                     else if (bytesRead == 0)
                     {
