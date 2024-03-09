@@ -12,7 +12,7 @@ server {
     
     root /Users/nachab/Desktop/final/
 
-    autoindex on
+    autoindex off
     index index.html
 
     # Configure error pages
@@ -20,10 +20,9 @@ server {
 
     location /image/ {
         alias /../imgs/
-        
-        index index.html
+        index index.html 
         methods GET
-        autoindex on
+        autoindex off
         cgi_extention   .py
         cgi_bin      dd   
         return 302 /Users/nachab/Desktop/imgs/

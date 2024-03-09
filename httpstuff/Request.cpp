@@ -2,6 +2,7 @@
 #include "RequestMethods.hpp"
 #include "Response.hpp"
 #include <string>
+#include <sys/stat.h>
 #include <vector>
 
 //  ******** PARSING METHODS ********
@@ -128,7 +129,7 @@ void    Request::printHeaders() {
     }
 }
 
-int Request::validRequest() {
+int Request::validRequest(DataConfig config) {
     if (headers.find("Transfer-Encoding") != headers.end()) {
         std::cout << "transfer encoding found\n";
         if (headers["Transfer-Encoding"] != "chunked") {
@@ -151,6 +152,14 @@ int Request::validRequest() {
     if (requestEntity.size() > 8000) {
         std::cout << "request entity too large\n";
         return (ENTITY_LENGTH_EXCEEDED);
+    }
+    struct stat fileInfo;
+    if (stat((config.getRoot() + requestRessource.substr(1)).c_str(), &fileInfo) != 0) {
+        return (NOT_FOUND);
+    } else {
+        if (S_ISDIR(fileInfo.st_mode) && requestRessource[requestRessource.size() - 1] != '/') {
+            return (PERMANENTLY_MOVED);
+        }
     }
     if (requestRessource.find('.') == std::string::npos && requestRessource[requestRessource.size() - 1] != '/') {
         return (PERMANENTLY_MOVED);
@@ -214,7 +223,7 @@ Response Request::runHttpMethod(DataConfig config) {
 }
 
 Response Request::handleRequest(DataConfig config) {
-    int errorCode = validRequest();
+    int errorCode = validRequest(config);
     if (errorCode != 0) {
         Response response;
         if (errorCode == PERMANENTLY_MOVED) {

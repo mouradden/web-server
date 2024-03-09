@@ -6,6 +6,7 @@
 #include "Response.hpp"
 #include <map>
 #include <algorithm>
+#include <sys/stat.h>
 
 class Request {
     private:
@@ -21,7 +22,7 @@ class Request {
 
         // validation
         int checkAllowedChars(std::string value);
-        int validRequest();
+        int validRequest(DataConfig config);
 
         // parsing
         void parseRequest(std::string buffer, std::string delim);
