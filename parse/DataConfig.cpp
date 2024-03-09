@@ -176,5 +176,5 @@ void    DataConfig::setLocationCgiBin(std::string cgiBin)
 void    DataConfig::setLocationReturn(std::string returnStatus, std::string returnPath)
 {
     this->vectorLocation.back()._return.status = returnStatus;
-    this->vectorLocation.back()._return.status = returnPath;
+    this->vectorLocation.back()._return.path = returnPath;
 }
