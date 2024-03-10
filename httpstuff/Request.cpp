@@ -3,6 +3,7 @@
 #include "Response.hpp"
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 //  ******** PARSING METHODS ********
 
@@ -122,22 +123,29 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
 }
 
-void    Request::printHeaders() {
-    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
-        std::cout << it->first << " " << it->second << std::endl;
+int checkIfFolder(DataConfig config, std::string requestedRessource) {
+    struct stat fileInfo;
+    std::vector<Location>::iterator it = config.getSpecificLocation(requestedRessource + "/");
+    if (it != config.getLocation().end()) {
+        return (PERMANENTLY_MOVED);
+    } else if (stat((config.getRoot() + requestedRessource.substr(1)).c_str(), &fileInfo) != 0) {
+        return (NOT_FOUND);
+    } else {
+        if (S_ISDIR(fileInfo.st_mode) && requestedRessource[requestedRessource.size() - 1] != '/') {
+            return (PERMANENTLY_MOVED);
+        }
     }
+    return (0);
 }
 
-int Request::validRequest() {
+int Request::validRequest(DataConfig config) {
+    config.getRoot();
     if (headers.find("Transfer-Encoding") != headers.end()) {
         std::cout << "transfer encoding found\n";
         if (headers["Transfer-Encoding"] != "chunked") {
             return (501);
         }
     }
-    // if (requestMethod == "POST" && (headers.find("Transfer-Encoding") == headers.end() || headers.find("Content-Length") == headers.end())) {
-    //     return (BAD_REQUEST);
-    // }
     if (requestMethod == "POST" && (headers.find("Content-Length") == headers.end()))
         return (BAD_REQUEST);
     if (checkAllowedChars(requestRessource) == 400) {
@@ -154,9 +162,12 @@ int Request::validRequest() {
         std::cout << "request entity too large\n";
         return (ENTITY_LENGTH_EXCEEDED);
     }
-    if (requestRessource.find('.') == std::string::npos && requestRessource[requestRessource.size() - 1] != '/') {
-        return (PERMANENTLY_MOVED);
-    }
+    // if (requestRessource.back() != '/') {
+    //     int code = checkIfFolder(config, requestRessource);
+    //     if (code != 0) {
+    //         return (code);
+    //     }
+    // }
     if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
         return (NOT_IMPLEMENTED);
     }
@@ -171,7 +182,7 @@ void Request::buildPath(DataConfig config) {
         if (locationData != config.getLocation().end()) {
             this->location = locationData->location;
             if (locationData->root.empty() && locationData->alias.empty()) {
-                path = config.getRoot();
+                path = config.getRoot() + requestedLocation.substr(1);
             } else if (locationData->root.empty()) {
                 path = config.getRoot() + locationData->alias.substr(1);
             } else {
@@ -182,6 +193,7 @@ void Request::buildPath(DataConfig config) {
         }
     } else {
         path = config.getRoot();
+        location = "/";
     }
 }
 
@@ -189,14 +201,19 @@ void Request::buildPath(DataConfig config) {
 
 int Request::methodAllowed(DataConfig config) {
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
-    if (requestMethod.compare("GET") == 0) {
-        if (locationData->methods.get == 0)
-            return (0);
-    } else if (requestMethod.compare("POST") == 0) {
-        if (locationData->methods.post == 0)
-            return (0);
-    } else if (requestMethod.compare("DELETE") == 0) {
-        if (locationData->methods._delete == 0)
+    if (locationData != config.getLocation().end()) {
+        if (requestMethod.compare("GET") == 0) {
+            if (locationData->methods.get == 0)
+                return (0);
+        } else if (requestMethod.compare("POST") == 0) {
+            if (locationData->methods.post == 0)
+                return (0);
+        } else if (requestMethod.compare("DELETE") == 0) {
+            if (locationData->methods._delete == 0)
+                return (0);
+        }
+    } else if (requestRessource == "/") {
+        if (requestMethod.compare("GET") == 0)
             return (0);
     }
     return (1);
@@ -216,7 +233,7 @@ Response Request::runHttpMethod(DataConfig config) {
 }
 
 Response Request::handleRequest(DataConfig config) {
-    int errorCode = validRequest();
+    int errorCode = validRequest(config);
     if (errorCode != 0) {
         Response response;
         if (errorCode == PERMANENTLY_MOVED) {
@@ -226,13 +243,10 @@ Response Request::handleRequest(DataConfig config) {
         return (response);
     }
     buildPath(config);
-    std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
-    if (locationData != config.getLocation().end()) {
-        if (!methodAllowed(config)) {
-            Response response;
-            response.buildResponse(METHOD_NOT_ALLOWED);
-            return (response);
-        }
+    if (!methodAllowed(config)) {
+        Response response;
+        response.buildResponse(METHOD_NOT_ALLOWED);
+        return (response);
     }
     Response response = runHttpMethod(config);
     return response;

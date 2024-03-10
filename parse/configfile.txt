@@ -20,7 +20,19 @@ server {
 
     location /image/ {
         alias /../imgs/
-        
+        index index.html
+        methods GET
+        autoindex on
+        cgi_extention   .py
+        cgi_bin      dd   
+        return 302 /Users/nachab/Desktop/imgs/
+    }
+
+    location / {
+        methods GET POST DELETE
+    }
+
+    location /folder/ {
         index index.html
         methods GET
         autoindex on
