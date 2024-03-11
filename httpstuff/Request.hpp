@@ -18,7 +18,8 @@ class Request {
 
         std::string path;
         std::string location;
-
+        std::string host;
+        std::string port;
         // validation
         int checkAllowedChars(std::string value);
         int validRequest(DataConfig config);
@@ -28,6 +29,11 @@ class Request {
         void parseRequestLine(std::string buffer);
         void parseHeaders(std::string buffer);
         std::string& trimSpaces(std::string& val);
+        // karim request
+        // void    checkValidPath();
+        
+        void        checkWichServer();
+        void        parseHostPort();
     public:
         // constructor
         Request(std::string buffer);

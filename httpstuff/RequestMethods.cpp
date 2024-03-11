@@ -70,6 +70,8 @@ Response buildResponseWithFile(Request request, DataConfig config, std::string p
                 response.setContentLength(ss.str().size());
                 response.setResponseBody(ss.str());
                 response.buildResponse(OK);
+                // ss << http << 404 << NOT FOUND << "\r\n" content-length: << 400 << content-type: << txt << "\rn" << body
+                // response.setresponsentity(ss.str());
             }
         } 
     }
