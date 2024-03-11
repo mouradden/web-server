@@ -13,6 +13,8 @@
 #include <sstream>
 #include <fcntl.h>
 #include <dirent.h>
+#include <string>
+#include <cstring>
 
 #include <vector>
 #include <map>

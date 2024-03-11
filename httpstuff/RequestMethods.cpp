@@ -83,20 +83,12 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     if (requestedRessource.compare("/") == 0) {
         // request is empty, send index of root
         response = buildResponseWithFile(request, config, request.getPath() + config.getIndex(), OK);
-        return (response);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // if request wants a directory
         response = buildResponseWithFile(request, config, request.getPath(), OK);
     } else {
         // specific ressource is requested instead of default
-        if (requestedRessource.substr(1).find('/') != std::string::npos) {
-            // if request has a directory then trim the request to contain the file only
-            size_t pos = requestedRessource.find('/', 1);
-            response = buildResponseWithFile(request, config, request.getPath() + requestedRessource.substr(pos + 1), OK);
-        } else {
-            // request doesn't have a dir
-            response = buildResponseWithFile(request, config, request.getPath() + requestedRessource.substr(1), OK);
-        }
+            response = buildResponseWithFile(request, config, request.getPath(), OK);
     }
     return (response);
 }

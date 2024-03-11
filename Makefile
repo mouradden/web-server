@@ -6,7 +6,7 @@ NAME = webserv
 
 CPP = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++98 
+FLAGS = -Wall -Wextra -Werror 
 
 all : $(NAME)
 

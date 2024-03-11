@@ -5,9 +5,6 @@
 #include <vector>
 #include <sys/stat.h>
 
-//  ******** PARSING METHODS ********
-
-
 //  ******** CONSTRUCTORS ********
 
 Request::Request(std::string buffer) {
@@ -54,6 +51,8 @@ std::string Request::getPath() const {
 std::string Request::getLocation() const {
     return (this->location);
 }
+
+//  ******** PARSING METHODS ********
 
 std::string& Request::trimSpaces(std::string& val) {
     std::string whiteSpaces = "\t ";
@@ -123,16 +122,58 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
 }
 
-int checkIfFolder(DataConfig config, std::string requestedRessource) {
-    struct stat fileInfo;
-    std::vector<Location>::iterator it = config.getSpecificLocation(requestedRessource + "/");
-    if (it != config.getLocation().end()) {
-        return (PERMANENTLY_MOVED);
-    } else if (stat((config.getRoot() + requestedRessource.substr(1)).c_str(), &fileInfo) != 0) {
-        return (NOT_FOUND);
+std::string getLocationPath(DataConfig &config, std::vector<Location>::iterator &location, std::string requestRessource) {
+    if (location->root.empty() && location->alias.empty()) {
+        return (config.getRoot() + requestRessource.substr(1));
+    } else if (!location->root.empty()) {
+        return (location->root);
     } else {
-        if (S_ISDIR(fileInfo.st_mode) && requestedRessource[requestedRessource.size() - 1] != '/') {
-            return (PERMANENTLY_MOVED);
+        return (config.getRoot() + location->alias.substr(1));
+    }
+}
+
+void Request::buildPath(DataConfig &config) {
+    std::vector<Location> locations = config.getLocation();
+    std::vector<Location>::iterator it = locations.begin();
+    size_t pos = 0;
+    while (it != locations.end()) {
+        pos = requestRessource.find(it->location.substr(0, location.size() - 1));
+        if (pos != std::string::npos && it->location.compare("/") != 0) {
+            location = requestRessource.substr(0, pos + it->location.size());
+            break ;
+        } else if (it->location.compare("/") == 0) {
+            location = "/";
+        }
+        it++;
+    }
+    if (it != locations.end()) {
+        if (location.size() < requestRessource.size()) {
+            path = getLocationPath(config, it, location) + requestRessource.substr(location.size());
+        } else {
+            path = getLocationPath(config, it, location);
+        }
+    } else {
+        path = config.getRoot() + requestRessource.substr(1);
+    }
+}
+
+int Request::validateUri(DataConfig &config) {
+    int hasSlash = 0;
+    if (requestRessource.back() != '/') {
+        hasSlash = 1;
+    }
+
+    buildPath(config);
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0) {
+        return (NOT_FOUND);
+    } else if (S_ISDIR(statbuf.st_mode) && hasSlash) {
+        return (PERMANENTLY_MOVED);
+    } else {
+        if (requestMethod.compare("GET") == 0 && !(statbuf.st_mode & S_IRUSR)) {
+            return (FORBIDDEN);
+        } else if (requestMethod.compare("POST") == 0 && !(statbuf.st_mode & S_IWUSR)) {
+            return (FORBIDDEN);
         }
     }
     return (0);
@@ -162,39 +203,10 @@ int Request::validRequest(DataConfig config) {
         std::cout << "request entity too large\n";
         return (ENTITY_LENGTH_EXCEEDED);
     }
-    // if (requestRessource.back() != '/') {
-    //     int code = checkIfFolder(config, requestRessource);
-    //     if (code != 0) {
-    //         return (code);
-    //     }
-    // }
     if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
         return (NOT_IMPLEMENTED);
     }
-    return (0);
-}
-
-void Request::buildPath(DataConfig config) {
-    if (requestRessource.substr(1).find('/') != std::string::npos) {
-        // if a directory is requested search if it's exists in a location
-        std::string requestedLocation = requestRessource.substr(0, requestRessource.find_last_of('/') + 1);
-        std::vector<Location>::iterator locationData = config.getSpecificLocation(requestedLocation);
-        if (locationData != config.getLocation().end()) {
-            this->location = locationData->location;
-            if (locationData->root.empty() && locationData->alias.empty()) {
-                path = config.getRoot() + requestedLocation.substr(1);
-            } else if (locationData->root.empty()) {
-                path = config.getRoot() + locationData->alias.substr(1);
-            } else {
-                path = locationData->root;
-            }
-        } else {
-            path = config.getRoot() + requestedLocation.substr(1);
-        }
-    } else {
-        path = config.getRoot();
-        location = "/";
-    }
+    return (validateUri(config));
 }
 
 //  ******** HANDLER ********
@@ -202,6 +214,7 @@ void Request::buildPath(DataConfig config) {
 int Request::methodAllowed(DataConfig config) {
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (locationData != config.getLocation().end()) {
+        std::cout << "enters check for locations\n";
         if (requestMethod.compare("GET") == 0) {
             if (locationData->methods.get == 0)
                 return (0);
@@ -242,7 +255,6 @@ Response Request::handleRequest(DataConfig config) {
         response.buildResponse(errorCode);
         return (response);
     }
-    buildPath(config);
     if (!methodAllowed(config)) {
         Response response;
         response.buildResponse(METHOD_NOT_ALLOWED);
