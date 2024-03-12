@@ -135,15 +135,14 @@ std::string getLocationPath(DataConfig &config, std::vector<Location>::iterator 
 void Request::buildPath(DataConfig &config) {
     std::vector<Location> locations = config.getLocation();
     std::vector<Location>::iterator it = locations.begin();
+    std::string tempRequest = requestRessource.back() != '/' ? requestRessource + "/" : requestRessource;
     size_t pos = 0;
     while (it != locations.end()) {
-        pos = requestRessource.find(it->location.substr(0, it->location.size() - 1));
+        pos = tempRequest.find(it->location.substr(0, it->location.size()));
         if (pos != std::string::npos && it->location.compare("/") != 0) {
-            std::cout << "works\n";
-            std::cout << "location name is " << it->location << std::endl;
-            location = requestRessource.substr(0, pos + it->location.size());
+            location = tempRequest.substr(0, pos + it->location.size());
             break ;
-        } else if (it->location.compare("/") == 0) {
+        } else if (pos != std::string::npos && requestRessource.compare("/") == 0) {
             location = "/";
         }
         it++;
@@ -157,11 +156,13 @@ void Request::buildPath(DataConfig &config) {
     } else {
         path = config.getRoot() + requestRessource.substr(1);
     }
+    std::cout << "location built is \"" << location << "\"" << std::endl;
 }
 
 int Request::validateUri(DataConfig &config) {
     int hasSlash = 0;
     if (requestRessource.back() != '/') {
+
         hasSlash = 1;
     }
 

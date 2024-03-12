@@ -37,6 +37,7 @@ Response buildResponseWithFile(Request request, DataConfig config, std::string p
                 std::ifstream file(path + locationData->index);
                 if (!file.is_open()) {
                     if (locationData->autoIndex) {
+                        std::cout << "entered check 1\n";
                         ss << generateHTML(path.c_str());
                         response.setContentType(".html");
                         response.setContentLength(ss.str().size());
@@ -46,22 +47,26 @@ Response buildResponseWithFile(Request request, DataConfig config, std::string p
                         response.buildResponse(FORBIDDEN);
                     }
                 } else {
+                    std::cout << "entered check 2\n";
+                    std::ifstream file(path + locationData->index);
                     ss << file.rdbuf();
-                    response.setContentType(".html");
+                    response.setContentType(locationData->index);
                     response.setContentLength(ss.str().size());
                     response.setResponseBody(ss.str());
                     response.buildResponse(OK);
                 }
             } else {
-                std::ifstream file(path + "index.html");
+                std::cout << "entered check 3\n";
+                std::ifstream file(path + config.getIndex());
                 ss << file.rdbuf();
-                response.setContentType(".html");
+                response.setContentType(config.getIndex());
                 response.setContentLength(ss.str().size());
                 response.setResponseBody(ss.str());
                 response.buildResponse(OK);
             }
         }
         else {
+            std::cout << "entered check 4\n";
             std::ifstream file(path);
             if (!file.is_open()) {
                 response.buildResponse(NOT_FOUND);
@@ -86,6 +91,7 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
         response = buildResponseWithFile(request, config, request.getPath() + config.getIndex(), OK);
     } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // if request wants a directory
+        std::cout << "entered directory test\n";
         response = buildResponseWithFile(request, config, request.getPath(), OK);
     } else {
         // specific ressource is requested instead of default

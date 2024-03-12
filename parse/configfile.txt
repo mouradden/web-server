@@ -32,12 +32,7 @@ server {
         methods GET POST DELETE
     }
 
-    location /folder/ {
-        index index.html
-        methods GET
-        autoindex on
-    }
-
+    
     location /txt/ {
 
         root slm2
