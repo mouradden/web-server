@@ -289,20 +289,29 @@ Response Request::runHttpMethod(DataConfig config) {
 }
 
 Response Request::handleRequest(DataConfig config) {
+    Response response;
     int errorCode = validRequest(config);
     if (errorCode != 0) {
-        Response response;
         if (errorCode == PERMANENTLY_MOVED) {
             response.setHeader("Location:", requestRessource + "/");
         }
         response.buildResponse(errorCode);
         return (response);
     }
+    // check if there is a redirection
+    std::vector<Location>::iterator it = config.getSpecificLocation(location);
+    if (it != config.getLocation().end()) {
+        if (!it->_return.path.empty() && !it->_return.status.empty()) {
+            response.setHeader("Location:", it->_return.path);
+            response.buildResponse(atoi(it->_return.status.c_str()));
+            return (response);
+        }
+    }
+    // check if the method is allowed on the requested ressource
     if (!methodAllowed(config)) {
-        Response response;
         response.buildResponse(METHOD_NOT_ALLOWED);
         return (response);
     }
-    Response response = runHttpMethod(config);
+    response = runHttpMethod(config);
     return response;
 }

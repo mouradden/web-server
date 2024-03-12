@@ -26,8 +26,6 @@ server {
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 302 /home/vscode/latest/
-
     }
 
     location / {
