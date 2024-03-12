@@ -236,14 +236,54 @@ int Request::methodAllowed(DataConfig config) {
     return (1);
 }
 
+void        Request::parseHostPort()
+{
+    std::string hostKey = "Host: ";
+    std::string line;
+    size_t hostStart = this->requestEntity.find(hostKey);
+    if (hostStart < this->requestEntity.length()) {
+        size_t lineEnd = this->requestEntity.find("\n", hostStart);
+        if (lineEnd < this->requestEntity.length())
+        {
+            line = this->requestEntity.substr(hostStart, lineEnd - hostStart);
+            lineEnd = 0;
+            hostStart = 0;
+            hostStart = line.find(" ");
+            lineEnd = line.find(":", hostStart);
+            this->host = line.substr(hostStart+1, (lineEnd - hostStart) - 1);
+            lineEnd = 0;
+            hostStart = 0;
+            int doublePoint = 0;
+            hostStart = line.find(":");
+            doublePoint = line.find(":", hostStart+1);
+            this->port = line.substr(doublePoint+1, (line.length() - doublePoint));
+        }
+         else 
+            line = "";
+    }
+}
+
+void    Request::checkWichServer()
+{
+    parseHostPort();
+    
+}
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 
-    // else if (requestMethod.compare("POST") == 0) {
-    //     response = RequestMethod::POST(*this, config);
-    // } else if (requestMethod.compare("DELETE") == 0) {
+    else if (requestMethod.compare("POST") == 0) {
+        checkWichServer();
+        // std::cout <<"host " << this->host << "\n";
+
+        std::cout << this->requestEntity << "\n";
+        std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
+        // std::cout << this->httpVersion << "\n";
+        
+        // response = RequestMethod::POST(*this, config);
+    }
+    //  else if (requestMethod.compare("DELETE") == 0) {
     //     response = RequestMethod::DELETE(*this, config);
     // }
     return (response);

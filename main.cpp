@@ -94,6 +94,7 @@ int main()
                     if (bytesRead > 0)
                     {
                         DataConfig config = server.getServers()[*it];
+                        
                         Request req(buffer);
                         Response response = req.handleRequest(config);
                         response.sendResponse(*it);
