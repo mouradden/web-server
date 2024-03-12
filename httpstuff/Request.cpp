@@ -163,7 +163,6 @@ void Request::buildPath(DataConfig &config) {
 int Request::validateUri(DataConfig &config) {
     int hasSlash = 0;
     if (requestRessource.back() != '/') {
-
         hasSlash = 1;
     }
 

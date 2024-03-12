@@ -10,7 +10,7 @@ server {
     server_name example.com
     host localhost
     
-    root /home/vscode/web-server/
+    root /home/vscode/latest/
 
 
     autoindex on
@@ -26,7 +26,7 @@ server {
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 302 /home/vscode/web-server/
+        return 302 /home/vscode/latest/
 
     }
 
@@ -41,7 +41,7 @@ server {
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 302 /Users/ahajji/Desktop/imgs/
+        return 302 /home/vscode/latest/
     }
 
     location /txt/ {
@@ -52,7 +52,7 @@ server {
         autoindex off
         cgi_extention   .dd
         cgi_bin      dff   
-        return 305 /home/vscode/web-server
+        return 305 /home/vscode/latest/
     }
 }
 
