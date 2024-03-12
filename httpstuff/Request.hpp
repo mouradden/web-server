@@ -22,7 +22,10 @@ class Request {
         std::string port;
         // validation
         int checkAllowedChars(std::string value);
+        int validateUri(DataConfig &config);
         int validRequest(DataConfig config);
+
+        void buildPath(DataConfig &config);
 
         // parsing
         void parseRequest(std::string buffer, std::string delim);
@@ -50,6 +53,6 @@ class Request {
         int methodAllowed(DataConfig config);
         Response handleRequest(DataConfig config);
         Response runHttpMethod(DataConfig config);
-        void buildPath(DataConfig config);
-        void printHeaders();
+        // void buildPath(DataConfig config);
+        // void printHeaders();
 };

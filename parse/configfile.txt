@@ -10,7 +10,8 @@ server {
     server_name example.com
     host localhost
     
-    root /Users/ahajji/Desktop/newweb/
+    root /home/vscode/web-server/
+
 
     autoindex on
     index index.html
@@ -19,18 +20,20 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        alias /../imgs/
+        alias /imgs/
         index index.html
         methods GET
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 302 /Users/ahajji/Desktop/imgs/
+        return 302 /home/vscode/web-server/
+
     }
 
     location / {
         methods GET POST DELETE
     }
+
 
     location /folder/ {
         index index.html
@@ -49,7 +52,7 @@ server {
         autoindex off
         cgi_extention   .dd
         cgi_bin      dff   
-        return 305 /path/to/fff
+        return 305 /home/vscode/web-server
     }
 }
 

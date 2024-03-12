@@ -5,6 +5,7 @@
 #include "httpstuff/Request.hpp"
 #include "httpstuff/Response.hpp"
 #include "parse/DataConfig.hpp"
+#include <cstring>
 // cretae a socket
 // bind the socket to IP / port
 // mark the socket for listening
