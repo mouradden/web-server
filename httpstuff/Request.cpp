@@ -157,6 +157,7 @@ void Request::buildPath(DataConfig &config) {
         path = config.getRoot() + requestRessource.substr(1);
     }
     std::cout << "location built is \"" << location << "\"" << std::endl;
+    std::cout << "path built is \"" << path << "\"" << std::endl;
 }
 
 int Request::validateUri(DataConfig &config) {
@@ -167,7 +168,7 @@ int Request::validateUri(DataConfig &config) {
     }
 
     buildPath(config);
-    std::cout << "path built is " << path << std::endl;
+    // std::cout << "path built is " << path << std::endl;
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
         return (NOT_FOUND);
