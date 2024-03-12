@@ -1,7 +1,7 @@
 # This is a comment explaining what the following section does
 
 # Set the server's default behavior
-
+                
 server {
 
     listen 8081
@@ -10,7 +10,7 @@ server {
     server_name example.com
     host localhost
     
-    root /Users/ahajji/Desktop/newweb/
+    root /home/vscode/web-server/
 
     autoindex on
     index index.html
@@ -19,13 +19,13 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        alias /../imgs/
+        alias /../
         index index.html
         methods GET
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 302 /Users/ahajji/Desktop/imgs/
+        return 302 /home/vscode/web-server/
     }
 
     location / {
@@ -36,9 +36,6 @@ server {
         index index.html
         methods GET
         autoindex on
-        cgi_extention   .py
-        cgi_bin      dd   
-        return 302 /Users/ahajji/Desktop/imgs/
     }
 
     location /txt/ {
@@ -49,7 +46,7 @@ server {
         autoindex off
         cgi_extention   .dd
         cgi_bin      dff   
-        return 305 /path/to/fff
+        return 305 /home/vscode/web-server
     }
 }
 
@@ -63,21 +60,16 @@ server {
     host 127.0.0.1
     
     # Define the root directory for serving files
-    root /Users/ahajji/Desktop/newweb/
+    root /var/www/html
 
     autoindex on
     # Define default file to serve
-    index index.html
+    index index2.html
 
     # Configure error pages
     error_page 404 /404.html
 
     # Define location of static files
-    
-    location / {
-        methods GET POST DELETE
-    }
-
     location /static/ {
         alias /var/www/static/
         root /var/www/static/
