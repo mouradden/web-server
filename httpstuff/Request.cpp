@@ -137,8 +137,10 @@ void Request::buildPath(DataConfig &config) {
     std::vector<Location>::iterator it = locations.begin();
     size_t pos = 0;
     while (it != locations.end()) {
-        pos = requestRessource.find(it->location.substr(0, location.size() - 1));
+        pos = requestRessource.find(it->location.substr(0, it->location.size() - 1));
         if (pos != std::string::npos && it->location.compare("/") != 0) {
+            std::cout << "works\n";
+            std::cout << "location name is " << it->location << std::endl;
             location = requestRessource.substr(0, pos + it->location.size());
             break ;
         } else if (it->location.compare("/") == 0) {
@@ -164,6 +166,7 @@ int Request::validateUri(DataConfig &config) {
     }
 
     buildPath(config);
+    std::cout << "path built is " << path << std::endl;
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
         return (NOT_FOUND);
@@ -214,7 +217,6 @@ int Request::validRequest(DataConfig config) {
 int Request::methodAllowed(DataConfig config) {
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (locationData != config.getLocation().end()) {
-        std::cout << "enters check for locations\n";
         if (requestMethod.compare("GET") == 0) {
             if (locationData->methods.get == 0)
                 return (0);

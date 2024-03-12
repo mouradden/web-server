@@ -15,13 +15,14 @@ std::string generateHTML(const char* path) {
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_name[0] != '.')
-            ss << "<li>" << entry->d_name << "</li>";
+        if (entry->d_name[0] != '.') {
+            ss << "<li><a href=\"" << std::string(path) + entry->d_name << "\">" << entry->d_name << "</a></li>";
+        }
     }
 
     ss << "</ul></body></html>";
     closedir(dir);
-    return (ss.str());
+    return ss.str();
 }
 
 Response buildResponseWithFile(Request request, DataConfig config, std::string path, unsigned int code) {
@@ -88,7 +89,7 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
         response = buildResponseWithFile(request, config, request.getPath(), OK);
     } else {
         // specific ressource is requested instead of default
-            response = buildResponseWithFile(request, config, request.getPath(), OK);
+        response = buildResponseWithFile(request, config, request.getPath(), OK);
     }
     return (response);
 }

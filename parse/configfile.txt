@@ -19,7 +19,7 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        alias /../
+        alias /../web-server/
         index index.html
         methods GET
         autoindex on
