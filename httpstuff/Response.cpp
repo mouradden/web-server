@@ -163,6 +163,9 @@ void Response::setStatus(unsigned int code) {
             status = "Found";
             break ;
         // 4XX status codes
+        case TEMPORARY_REDIRECT:
+            status = "Temporary Redirect";
+            break ;
         case BAD_REQUEST:
             status =  "Bad Request";
             break ;

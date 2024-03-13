@@ -22,7 +22,7 @@ server {
     location /image/ {
         alias /imgs/
         index index.html
-        methods GET
+        methods POST
         autoindex on
         cgi_extention   .py
         cgi_bin      dd   

@@ -156,8 +156,8 @@ void Request::buildPath(DataConfig &config) {
     } else {
         path = config.getRoot() + requestRessource.substr(1);
     }
-    std::cout << "location built is \"" << location << "\"" << std::endl;
-    std::cout << "path built is \"" << path << "\"" << std::endl;
+    // std::cout << "location built is \"" << location << "\"" << std::endl;
+    // std::cout << "path built is \"" << path << "\"" << std::endl;
 }
 
 int Request::validateUri(DataConfig &config) {
@@ -172,7 +172,11 @@ int Request::validateUri(DataConfig &config) {
     if (stat(path.c_str(), &statbuf) != 0) {
         return (NOT_FOUND);
     } else if (S_ISDIR(statbuf.st_mode) && hasSlash) {
-        return (PERMANENTLY_MOVED);
+        if (requestMethod.compare("GET") == 0)
+            return (PERMANENTLY_MOVED);
+        else if (requestRessource.compare("POST") == 0 || requestRessource.compare("DELETE") == 0) {
+            return (TEMPORARY_REDIRECT);
+        }
     } else {
         if (requestMethod.compare("GET") == 0 && !(statbuf.st_mode & S_IRUSR)) {
             return (FORBIDDEN);
@@ -276,7 +280,7 @@ Response Request::runHttpMethod(DataConfig config) {
         checkWichServer();
         // std::cout <<"host " << this->host << "\n";
 
-        std::cout << this->requestEntity << "\n";
+        // std::cout << this->requestEntity << "\n";
         std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
         // std::cout << this->httpVersion << "\n";
         
@@ -292,7 +296,7 @@ Response Request::handleRequest(DataConfig config) {
     Response response;
     int errorCode = validRequest(config);
     if (errorCode != 0) {
-        if (errorCode == PERMANENTLY_MOVED) {
+        if (errorCode >= 300 && errorCode <= 308) {
             response.setHeader("Location:", requestRessource + "/");
         }
         response.buildResponse(errorCode);
