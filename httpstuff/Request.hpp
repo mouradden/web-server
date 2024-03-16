@@ -6,7 +6,7 @@
 #include "Response.hpp"
 #include <map>
 #include <algorithm>
-
+class Response;
 class Request {
     private:
         std::string requestEntity;

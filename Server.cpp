@@ -13,6 +13,11 @@ void Server::createSocket(DataConfig config)
             std::cout << "Failed to create socket. Exiting..." << std::endl;
             exit(1);
         }
+        if (fcntl(socketFd, F_SETFL, O_NONBLOCK) == -1)
+        {
+            std::cerr << "Error setting socket to non-blocking\n";
+            return ;
+        }
         int enable = 1;
         if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
             std::cerr << "setsockopt(SO_REUSEADDR) failed";

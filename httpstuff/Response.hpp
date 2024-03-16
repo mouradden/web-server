@@ -1,12 +1,13 @@
 #pragma once
 
 #include "../Server.hpp"
+#include "Client.hpp"
 #include <map>
 #include <sstream>
 #include <vector>
 #include <algorithm>
 #include <string>
-
+class Client;
 class Response {
     private:
         std::string httpVersion;
@@ -26,7 +27,7 @@ class Response {
     public:
         Response();
         void buildResponse(unsigned int code);
-        void sendResponse(int socket);
+        int sendResponse(int socket, Client client);
 
         Response(const Response& ref);
         Response& operator=(const Response& ref);

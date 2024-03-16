@@ -96,8 +96,21 @@ void Response::buildResponse(unsigned int code) {
     responseEntity = ss.str();
 }
 
-void Response::sendResponse(int socket) {
-    send(socket, responseEntity.c_str(), responseEntity.size(), 0);
+int Response::sendResponse(int socket, Client client) {
+    size_t totalSize = client.getResponseBuffer().size();
+
+    std::cout << "Total bytes sent: " << client.getSentOffset() << std::endl;
+    std::cout << "Response size: " << totalSize << std::endl;
+    if (client.getSentOffset() < totalSize) {
+        size_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), sizeof(client.getResponseBuffer().c_str() + client.getSentOffset()), 0);
+        if ((int)sendResult == -1) {
+            std::cout << "############################Error sending data\n";
+            return -1;
+        }
+        client.incremetOffset(sendResult);
+        return 1;
+    }
+    return 0;
 }
 
 std::string Response::getStatus() {

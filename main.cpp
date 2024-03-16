@@ -1,27 +1,34 @@
 #include "Server.hpp"
-#include <fstream>
+#include <iostream>
 #include <vector>
 #include <list>
 #include "httpstuff/Request.hpp"
 #include "httpstuff/Response.hpp"
 #include "parse/DataConfig.hpp"
-// cretae a socket
-// bind the socket to IP / port
-// mark the socket for listening
-// accept a call
-// close the listening socket
-// 
-// close socket
+#include <poll.h>
+#include <algorithm>
 
-bool shouldRemove(Response &r) {
-    return (r.getState() == -1);
+int sendResponse(int socket, Client& client)
+{
+    size_t totalSize = client.getResponseBuffer().size();
+
+    if (client.getSentOffset() < totalSize) {
+        ssize_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), totalSize - client.getSentOffset(), 0);
+        if (sendResult == -1) {
+            std::cerr << "Error sending data\n";
+            return -1;
+        }
+        client.incremetOffset(sendResult);
+        std::cout << "socket = " << socket << "  ------ date sent : " << client.getSentOffset() << "\n";
+        return 1;
+    }
+    return 0;
 }
 
 int main()
 {
     Server server;
     ParseConfigFile config;
-    std::list<Response> chunkedResponses;
     config.parser("./parse/configfile.txt");
     for (size_t i = 0; i < config.getData().size(); i++)
     {
@@ -31,102 +38,403 @@ int main()
     server.createServer(config.getData());
     server.putServerOnListening();
 
-    std::vector<int> activeConnections;
-    fd_set setOfFds, readSet, writeSet;
-    FD_ZERO(&setOfFds);
-    int max_fd = -1;
+    std::map<int, Client> Clients;
+    std::vector<pollfd> fds;
     for (size_t i = 0; i < server.getServerSockets().size(); i++)
     {
         int fd = server.getServerSocket(i);
-        FD_SET(fd, &setOfFds);
-        if (fd > max_fd)
-            max_fd = fd;
+        pollfd pfd;
+        pfd.fd = fd;
+        pfd.events = POLLIN;
+        fds.push_back(pfd);
+        Clients.insert(std::make_pair(fd, Client()));
     }
- 
+    std::vector<int> fdsToRemove;
     while (true) 
     {
-        readSet = setOfFds;
-        writeSet = setOfFds;
-        int selectResult = select(max_fd + 1, &readSet, &writeSet, NULL, NULL);
-        if (selectResult == -1)
+        int pollResult = poll(fds.data(), fds.size(), 1000);
+        if (pollResult == -1)
         {
-            std::cerr << "Error in select\n";
+            std::cerr << "Error in poll\n";
             return 1;
         }
-        for (size_t i = 0; i < server.getServerSockets().size(); i++)
+        // if (pollResult == 0)
+        // {
+        //     std::cout << "Timeout occurred\n";
+        //     continue;
+        // }
+        for (size_t i = 0; i < fds.size(); i++)
         {
-            if (FD_ISSET(server.getServerSocket(i), &readSet))
+            if (fds[i].revents & POLLIN)
             {
-                int clientSocket = accept(server.getServerSocket(i), NULL, NULL);
-                if (clientSocket == -1)
+                std::vector<int> sockets = server.getServerSockets();
+                std::vector<int>::iterator it = std::find(sockets.begin(), sockets.end(), fds[i].fd);
+                if (it != sockets.end() && fds[i].fd == *it)
                 {
-                    std::cerr << "Error accepting client connection\n";
-                }
-                else
-                {
-                    int flags = fcntl(clientSocket, F_GETFL, 0);
-                    if (flags == -1) {
-                        std::cerr << "Error getting flags for socket\n";
-                        return 1;
-                    }
-                    // std::cout << "*********************************>flags : " << flags << "\n";
-                    flags |= O_NONBLOCK;
-                    if (fcntl(clientSocket, F_SETFL, flags) == -1) {
-                        std::cerr << "Error setting socket to non-blocking\n";
-                        return 1;
-                    }
-                    
-                    std::cout << "New client connected, socket: " << clientSocket << "\n";
-                    if (clientSocket > max_fd)
-                        max_fd = clientSocket;
-                    // std::cout << "max = " << max_fd << "\n";
-                    activeConnections.push_back(clientSocket);
-                    
-                    FD_SET(clientSocket, &setOfFds);
-                    server.setServer(clientSocket, server.getServers()[server.getServerSocket(i)]);
-                }
-            }
-        }
-            for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); ++it)
-            {
-                if (FD_ISSET(*it, &readSet))
-                {
-                    char buffer[4096];
-                    memset(buffer, 0, 4096);
-                    ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
-                    if (bytesRead > 0)
+                    int clientSocket = accept(fds[i].fd, NULL, NULL);
+                    if (clientSocket == -1)
                     {
-                        std::cout << "***** handling request for socket == " << *it << std::endl;
-                        DataConfig config = server.getServers()[*it];
-                        Request req(buffer);
-                        Response response = req.handleRequest(config);
-                        response.sendResponse(*it);
-                        if (response.getState() > 2) {
-                            response.setSocket(*it);
-                            chunkedResponses.push_back(response);
-                        } else if (response.getState() == -1) {
-                            if (chunkedResponses.size() > 0) {
-                                chunkedResponses.remove_if(shouldRemove);
-                            }
-                        }
-                    } 
-                    else if (bytesRead == 0)
-                    {
-                        // Connection closed by the client
-                        std::cout << "Client disconnected, socket: " << *it << "\n";
-                        close(*it);
-                        FD_CLR(*it, &setOfFds);
-                        it = activeConnections.erase(it) - 1; // Decrement iterator to avoid skipping the next element
+                        std::cerr << "Error accepting client connection\n";
                     }
                     else
                     {
-                        // Error in recv
-                        std::cerr << "Error receiving data from client, socket: " << *it << "\n";
-                        close(*it);
-                        FD_CLR(*it, &setOfFds);
-                        it = activeConnections.erase(it) - 1;
+                        if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
+                            std::cerr << "Error setting socket to non-blocking\n";
+                            return 1;
+                        }
+                        
+                        std::cout << "New client connected, socket: " << clientSocket << "\n";
+                        Clients.insert(std::make_pair(clientSocket, Client()));
+                        pollfd pfd;
+                        pfd.fd = clientSocket;
+                        pfd.events = POLLIN;
+                        fds.push_back(pfd);
+                        server.setServer(clientSocket, server.getServers()[fds[i].fd]);
                     }
                 }
             }
+        }
+
+        for (size_t i = 0; i < fds.size(); i++)
+        {
+            // std::cout << "read socket = " << fds[i].fd << "\n";
+            std::vector<int> sockets = server.getServerSockets();
+            std::vector<int>::iterator it = std::find(sockets.begin(), sockets.end(), fds[i].fd);
+            if (fds[i].revents & POLLIN && it == sockets.end())
+            {
+                int clientSocket = fds[i].fd;
+                char buffer[4096];
+                ssize_t bytesRead = recv(clientSocket, buffer, 4096 - 1, 0);
+                if (bytesRead > 0)
+                {
+                    std::cout << "Handling request for socket: " << clientSocket << std::endl;
+                    DataConfig config = server.getServers()[clientSocket];
+                    Request req(buffer);
+                    Response response = req.handleRequest(config);
+                    
+                    Clients[clientSocket].getRequestBuffer().clear();
+                    Clients[clientSocket].getResponseBuffer().clear();
+                    Clients[clientSocket].setOffset(0);
+
+                    Clients[clientSocket].setRequest(buffer);
+                    Clients[clientSocket].setResponse(response.getResponseEntity());
+                    fds[i].events |= POLLOUT;
+                    fds[i].events &= ~POLLIN;
+                } 
+                else if (bytesRead == 0)
+                {
+                    std::cout << "Client disconnected, socket: " << clientSocket << "\n";
+                    close(clientSocket);
+                    fds.erase(fds.begin() + i);
+                    Clients.erase(clientSocket);
+                }
+                else
+                {
+                    std::cerr << "recv return  = " << bytesRead << "\n";
+                    std::cerr << "Error receiving data from client, socket: " << clientSocket << "\n";
+                    close(clientSocket);
+                    fds.erase(fds.begin() + i);
+                    Clients.erase(clientSocket);
+                }
+            }
+        }
+        for (size_t i = 0; i < fds.size(); i++)
+        {
+            // std::cout << "write socket = " << fds[i].fd << "\n";
+            if (fds[i].revents & POLLOUT)
+            {
+                int clientSocket = fds[i].fd;
+                std::cout << "Handling response for socket: " << clientSocket << std::endl;
+                if (sendResponse(clientSocket, Clients[clientSocket]) == 0)
+                {
+                    std::cout << "Response sent for socket: " << clientSocket << "\n";
+                    fds[i].events &= ~POLLOUT;
+                    fds[i].events |= POLLIN;
+                    Clients[clientSocket].getRequestBuffer().clear();
+                    Clients[clientSocket].getResponseBuffer().clear();
+                    Clients[clientSocket].setOffset(0);
+                }
+            }
+        }
     }
+    return 0;
 }
+
+        // for (size_t i = 0; i < fds.size(); i++)
+        // {
+        //     if (fds[i].revents & POLLIN)
+        //     {
+        //         std::vector<int> sockets = server.getServerSockets();
+        //         std::vector<int>::iterator it = std::find(sockets.begin(), sockets.end(), fds[i].fd);
+        //         if (it != sockets.end() && fds[i].fd == *it)
+        //         {
+        //             int clientSocket = accept(fds[i].fd, NULL, NULL);
+        //             if (clientSocket == -1)
+        //             {
+        //                 std::cerr << "Error accepting client connection\n";
+        //             }
+        //             else
+        //             {
+        //                 if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
+        //                     std::cerr << "Error setting socket to non-blocking\n";
+        //                     return 1;
+        //                 }
+                        
+        //                 std::cout << "New client connected, socket: " << clientSocket << "\n";
+        //                 activeConnections.push_back(clientSocket);
+        //                 Clients.insert(std::make_pair(clientSocket, Client()));
+        //                 pollfd pfd;
+        //                 pfd.fd = clientSocket;
+        //                 pfd.events = POLLIN;
+        //                 fds.push_back(pfd);
+        //                 server.setServer(clientSocket, server.getServers()[fds[i].fd]);
+        //             }
+        //         }
+        //         else
+        //         {
+        //             int clientSocket = fds[i].fd;
+        //             char buffer[4096];
+        //             ssize_t bytesRead = recv(clientSocket, buffer, 4096 - 1, 0);
+        //             if (bytesRead > 0)
+        //             {
+        //                 std::cout << "Handling request for socket: " << clientSocket << std::endl;
+        //                 DataConfig config = server.getServers()[clientSocket];
+        //                 Request req(buffer);
+        //                 Response response = req.handleRequest(config);
+                        
+        //                 Clients[clientSocket].getRequestBuffer().clear();
+        //                 Clients[clientSocket].getResponseBuffer().clear();
+        //                 Clients[clientSocket].setOffset(0);
+
+        //                 Clients[clientSocket].setRequest(buffer);
+        //                 Clients[clientSocket].setResponse(response.getResponseEntity());
+        //                 fds[i].events |= POLLOUT;
+        //                 fds[i].events &= ~POLLIN;
+        //             } 
+        //             else if (bytesRead == 0)
+        //             {
+        //                 std::cout << "Client disconnected, socket: " << clientSocket << "\n";
+        //                 close(clientSocket);
+        //                 fds.erase(fds.begin() + i);
+        //                 // fdsToRemove.push_back(i);
+        //                 Clients.erase(clientSocket);
+        //                 activeConnections.erase(std::remove(activeConnections.begin(), activeConnections.end(), clientSocket), activeConnections.end());
+        //             }
+        //             else
+        //             {
+        //                 std::cerr << "recv return  = " << bytesRead << "\n";
+        //                 std::cerr << "Error receiving data from client, socket: " << clientSocket << "\n";
+        //                 close(clientSocket);
+        //                 fds.erase(fds.begin() + i);
+        //                 // fdsToRemove.push_back(i);
+        //                 Clients.erase(clientSocket);
+        //                 activeConnections.erase(std::remove(activeConnections.begin(), activeConnections.end(), clientSocket), activeConnections.end());
+        //             }
+        //         }
+        //     }
+        // }
+// #include "Server.hpp"
+// #include <iostream>
+// #include <vector>
+// #include <list>
+// #include "httpstuff/Request.hpp"
+// #include "httpstuff/Response.hpp"
+// #include "parse/DataConfig.hpp"
+
+// int sendResponse(int socket, Client& client)
+// {
+//     size_t totalSize = client.getResponseBuffer().size();
+
+//     if (client.getSentOffset() < totalSize) {
+//         ssize_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), totalSize - client.getSentOffset(), 0);
+//         if (sendResult == -1) {
+//             std::cerr << "Error sending data\n";
+//             return -1;
+//         }
+//         client.incremetOffset(sendResult);
+//         std::cout << "date sent : " << client.getSentOffset() << "\n";
+//         return 1;
+//     }
+//     return 0;
+// }
+
+// int main()
+// {
+//     Server server;
+//     ParseConfigFile config;
+//     config.parser("./parse/configfile.txt");
+//     for (size_t i = 0; i < config.getData().size(); i++)
+//     {
+//         server.createSocket(config.getData()[i]);
+//     }
+    
+//     server.createServer(config.getData());
+//     server.putServerOnListening();
+
+//     std::vector<int> activeConnections;
+//     fd_set setOfFds, readSet, writeSet;
+//     FD_ZERO(&setOfFds);
+//     FD_ZERO(&readSet);
+//     FD_ZERO(&writeSet);
+//     int max_fd = -1;
+//     for (size_t i = 0; i < server.getServerSockets().size(); i++)
+//     {
+//         int fd = server.getServerSocket(i);
+//         FD_SET(fd, &setOfFds);
+//         if (fd > max_fd)
+//             max_fd = fd;
+//     }
+
+//     std::map<int, Client> Clients;
+//     struct timeval timeout;
+//     timeout.tv_sec = 5;
+//     timeout.tv_usec = 0;
+//     while (true) 
+//     {
+//         readSet = setOfFds;
+//         int selectResult = select(max_fd + 1, &readSet, &writeSet, NULL, &timeout);
+//         if (selectResult == -1)
+//         {
+//             std::cerr << "Error in select\n";
+//             return 1;
+//         }
+//         // else if (selectResult == 0)
+//         // {
+//         //     std::cout << "Timeout occurred\n";
+//         //     // Clearing and resetting the sets and timeout for the next iteration
+//         //     FD_ZERO(&readSet);
+//         //     FD_ZERO(&writeSet);
+//         //     FD_ZERO(&setOfFds);
+//         //     for (size_t i = 0; i < server.getServerSockets().size(); i++)
+//         //     {
+//         //         int fd = server.getServerSocket(i);
+//         //         FD_SET(fd, &setOfFds);
+//         //         if (fd > max_fd)
+//         //             max_fd = fd;
+//         //     }
+//         //     continue;
+//         // }
+
+//         for (size_t i = 0; i < server.getServerSockets().size(); i++)
+//         {
+//             if (FD_ISSET(server.getServerSocket(i), &readSet))
+//             {
+//                 int clientSocket = accept(server.getServerSocket(i), NULL, NULL);
+//                 if (clientSocket == -1)
+//                 {
+//                     std::cerr << "Error accepting client connection\n";
+//                 }
+//                 else
+//                 {
+//                     if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
+//                         std::cerr << "Error setting socket to non-blocking\n";
+//                         return 1;
+//                     }
+                    
+//                     std::cout << "New client connected, socket: " << clientSocket << "\n";
+//                     if (clientSocket > max_fd)
+//                         max_fd = clientSocket;
+//                     activeConnections.push_back(clientSocket);
+//                     Client c;
+//                     Clients.insert(std::make_pair(clientSocket, c));
+//                     FD_SET(clientSocket, &setOfFds);
+//                     // FD_SET(clientSocket, &readSet);
+//                     server.setServer(clientSocket, server.getServers()[server.getServerSocket(i)]);
+//                 }
+//             }
+//         }
+
+//         // for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); it++)
+//         // {
+//         std::vector<int>::iterator it = activeConnections.begin();
+//         while (it != activeConnections.end())
+//         {
+//             // std::find(activeConnections.begin(), activeConnections.end(), *it) != activeConnections.end() && 
+//             if (FD_ISSET(*it, &readSet) && !FD_ISSET(*it, &writeSet))
+//             {
+//                 char buffer[4096];
+//                 memset(buffer, 0, 4096);
+//                 ssize_t bytesRead = recv(*it, buffer, 4096 - 1, 0); //receive request
+//                 if (bytesRead > 0)
+//                 {
+//                     std::cout << "Handling request for socket: " << *it << std::endl;
+//                     DataConfig config = server.getServers()[*it];
+//                     Request req(buffer);
+//                     Response response = req.handleRequest(config);
+                    
+//                     Clients[*it].getRequestBuffer().clear();
+//                     Clients[*it].getResponseBuffer().clear();
+//                     Clients[*it].setOffset(0);
+
+//                     Clients[*it].setRequest(buffer);
+//                     Clients[*it].setResponse(response.getResponseEntity());
+//                     FD_SET(*it, &writeSet);
+//                     FD_CLR(*it, &readSet);
+//                     // it++;
+//                 } 
+//                 else if (bytesRead == 0)
+//                 {
+//                     std::cout << "Client disconnected, socket: " << *it << "\n";
+//                     // close(*it);
+//                     Clients[*it].getRequestBuffer().clear();
+//                     Clients[*it].getResponseBuffer().clear();
+//                     Clients[*it].setOffset(0);
+//                     Clients.erase(*it);
+//                     // FD_CLR(*it, &setOfFds);
+//                     FD_CLR(*it, &readSet);
+//                     FD_CLR(*it, &writeSet);
+//                     it = activeConnections.erase(it);
+//                     // it++;
+//                     continue;
+//                 }
+//                 else
+//                 {
+//                     std::cerr << "recv return  = " << bytesRead << "\n";
+//                     std::cerr << "Error receiving data from client, socket: " << *it << "\n";
+//                     // close(*it);
+//                     Clients[*it].getRequestBuffer().clear();
+//                     Clients[*it].getResponseBuffer().clear();
+//                     Clients[*it].setOffset(0);
+//                     Clients.erase(*it);
+//                     // FD_CLR(*it, &setOfFds);
+//                     FD_CLR(*it, &readSet);
+//                     FD_CLR(*it, &writeSet);
+//                     it = activeConnections.erase(it);
+//                     // it++;
+//                     continue;
+//                 }
+//             }
+//             else
+//                 it++;
+//         }
+//         // for(std::vector<int>::iterator it = activeConnections.begin(); it != activeConnections.end(); it++)
+//         // {
+//         it = activeConnections.begin();
+//         while (it != activeConnections.end())
+//         {
+//             if (!FD_ISSET(*it, &readSet) && FD_ISSET(*it, &writeSet))
+//             {
+//                 std::cout << "Handling response for socket: " << *it << std::endl;
+//                 std::cout << "total response : " << Clients[*it].getResponseBuffer().size() << "\n";
+//                 if (sendResponse(*it, Clients[*it]) == 0)
+//                 {
+//                     std::cout << "Response sent for socket: " << *it << "\n";
+//                     Clients[*it].getRequestBuffer().clear();
+//                     Clients[*it].getResponseBuffer().clear();
+//                     Clients[*it].setOffset(0);
+//                     FD_CLR(*it, &writeSet);
+//                     FD_SET(*it, &readSet);
+//                     // close(*it);
+//                     // FD_CLR(*it, &setOfFds);
+//                     // Clients.erase(*it);
+//                     // it = activeConnections.erase(it);
+//                 }
+//                 else
+//                     it++;
+//             }
+//             else
+//                 it++;
+//         }
+//     }
+//     return 0;
+// }

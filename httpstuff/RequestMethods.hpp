@@ -6,7 +6,7 @@
 #include "Response.hpp"
 
 class Request;
-
+class Response;
 class RequestMethod {
     public:
         static Response GET(Request& request, DataConfig config);
