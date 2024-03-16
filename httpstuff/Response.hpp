@@ -20,9 +20,9 @@ class Response {
         std::string responseEntity;
 
         // chunked related stuff
-        int socket;
-        int state;
-        int offset;
+        // int socket;
+        // int state;
+        // int offset;
 
     public:
         Response();
@@ -44,8 +44,8 @@ class Response {
 
         std::string getResponseEntity();
         std::string getStatus();
-        int getSocket();
-        int getState();
-        int getFileOffset();
+        // int getSocket();
+        // int getState();
+        // int getFileOffset();
         std::string getMimeType(std::string fileExtension);
 };

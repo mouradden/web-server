@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParseConfigFile.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nachab <nachab@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/03/01 14:09:14 by nachab           ###   ########.fr       */
+/*   Updated: 2024/03/09 22:18:17 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -404,7 +404,10 @@ void    ParseConfigFile::parser(std::string nameFile)
             }
             if(this->findBraciteLeft != 0 || this->findBraciteRight != 0)
                 errorParse();
-            std::cout << this->data[0].getRoot() << std::endl;
+            
+            // std::cout << "hiii "<< this->data[0].getLocation()[0]._return.path;
+            // std::cout << this->data[0].getRoot() << std::endl;
+            // exit(0); 
     }
     else 
         std::cout << "error happen with this file" << std::endl;

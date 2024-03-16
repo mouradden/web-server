@@ -1,10 +1,9 @@
 #include "Request.hpp"
 #include "RequestMethods.hpp"
+#include "Response.hpp"
 #include <string>
 #include <vector>
-
-//  ******** PARSING METHODS ********
-
+#include <sys/stat.h>
 
 //  ******** CONSTRUCTORS ********
 
@@ -52,6 +51,8 @@ std::string Request::getPath() const {
 std::string Request::getLocation() const {
     return (this->location);
 }
+
+//  ******** PARSING METHODS ********
 
 std::string& Request::trimSpaces(std::string& val) {
     std::string whiteSpaces = "\t ";
@@ -121,22 +122,81 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
 }
 
-void    Request::printHeaders() {
-    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
-        std::cout << it->first << " " << it->second << std::endl;
+std::string getLocationPath(DataConfig &config, std::vector<Location>::iterator &location, std::string requestRessource) {
+    if (location->root.empty() && location->alias.empty()) {
+        return (config.getRoot() + requestRessource.substr(1));
+    } else if (!location->root.empty()) {
+        return (location->root);
+    } else {
+        return (config.getRoot() + location->alias.substr(1));
     }
 }
 
-int Request::validRequest() {
+void Request::buildPath(DataConfig &config) {
+    std::vector<Location> locations = config.getLocation();
+    std::vector<Location>::iterator it = locations.begin();
+    std::string tempRequest = requestRessource.back() != '/' ? requestRessource + "/" : requestRessource;
+    size_t pos = 0;
+    while (it != locations.end()) {
+        pos = tempRequest.find(it->location.substr(0, it->location.size()));
+        if (pos != std::string::npos && it->location.compare("/") != 0) {
+            location = tempRequest.substr(0, pos + it->location.size());
+            break ;
+        } else if (pos != std::string::npos && requestRessource.compare("/") == 0) {
+            location = "/";
+        }
+        it++;
+    }
+    if (it != locations.end()) {
+        if (location.size() < requestRessource.size()) {
+            path = getLocationPath(config, it, location) + requestRessource.substr(location.size());
+        } else {
+            path = getLocationPath(config, it, location);
+        }
+    } else {
+        path = config.getRoot() + requestRessource.substr(1);
+    }
+    // std::cout << "location built is \"" << location << "\"" << std::endl;
+    // std::cout << "path built is \"" << path << "\"" << std::endl;
+}
+
+int Request::validateUri(DataConfig &config) {
+    int hasSlash = 0;
+    if (requestRessource.back() != '/') {
+        hasSlash = 1;
+    }
+
+    buildPath(config);
+    // std::cout << "path built is " << path << std::endl;
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0) {
+        return (NOT_FOUND);
+    } else if (S_ISDIR(statbuf.st_mode) && hasSlash) {
+        if (requestMethod.compare("GET") == 0)
+            return (PERMANENTLY_MOVED);
+        else if (requestRessource.compare("POST") == 0 || requestRessource.compare("DELETE") == 0) {
+            return (TEMPORARY_REDIRECT);
+        }
+    } else {
+        if (requestMethod.compare("GET") == 0 && !(statbuf.st_mode & S_IRUSR)) {
+            return (FORBIDDEN);
+        } else if (requestMethod.compare("POST") == 0 && !(statbuf.st_mode & S_IWUSR)) {
+            return (FORBIDDEN);
+        }
+    }
+    return (0);
+}
+
+int Request::validRequest(DataConfig config) {
+    config.getRoot();
     if (headers.find("Transfer-Encoding") != headers.end()) {
         std::cout << "transfer encoding found\n";
         if (headers["Transfer-Encoding"] != "chunked") {
             return (501);
         }
     }
-    if (requestMethod == "POST" && (headers.find("Transfer-Encoding") == headers.end() || headers.find("Content-Length") == headers.end())) {
+    if (requestMethod == "POST" && (headers.find("Content-Length") == headers.end()))
         return (BAD_REQUEST);
-    }
     if (checkAllowedChars(requestRessource) == 400) {
         std::cout << "request uri : Bad request\n";
         return (BAD_REQUEST);
@@ -151,53 +211,111 @@ int Request::validRequest() {
         std::cout << "request entity too large\n";
         return (ENTITY_LENGTH_EXCEEDED);
     }
-    if (requestRessource.find('.') == std::string::npos && requestRessource[requestRessource.size() - 1] != '/') {
-        return (PERMANENTLY_MOVED);
+    if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
+        return (NOT_IMPLEMENTED);
     }
-    return (0);
-}
-
-void Request::buildPath(DataConfig config) {
-    if (requestRessource.substr(1).find('/') != std::string::npos) {
-        // if a directory is requested search if it's exists in a location
-        std::string requestedLocation = requestRessource.substr(0, requestRessource.find_last_of('/') + 1);
-        std::vector<Location>::iterator locationData = config.getSpecificLocation(requestedLocation);
-        if (locationData != config.getLocation().end()) {
-            this->location = locationData->location;
-            if (locationData->root.empty() && locationData->alias.empty()) {
-                path = config.getRoot();
-            } else if (locationData->root.empty()) {
-                path = config.getRoot() + locationData->alias.substr(1);
-            } else {
-                path = locationData->root;
-            }
-        } else {
-            path = config.getRoot() + requestedLocation.substr(1);
-        }
-    } else {
-        path = config.getRoot();
-    }
+    return (validateUri(config));
 }
 
 //  ******** HANDLER ********
 
+int Request::methodAllowed(DataConfig config) {
+    std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
+    if (locationData != config.getLocation().end()) {
+        if (requestMethod.compare("GET") == 0) {
+            if (locationData->methods.get == 0)
+                return (0);
+        } else if (requestMethod.compare("POST") == 0) {
+            if (locationData->methods.post == 0)
+                return (0);
+        } else if (requestMethod.compare("DELETE") == 0) {
+            if (locationData->methods._delete == 0)
+                return (0);
+        }
+    } else if (requestRessource == "/") {
+        if (requestMethod.compare("GET") == 0)
+            return (0);
+    }
+    return (1);
+}
+
+void        Request::parseHostPort()
+{
+    std::string hostKey = "Host: ";
+    std::string line;
+    size_t hostStart = this->requestEntity.find(hostKey);
+    if (hostStart < this->requestEntity.length()) {
+        size_t lineEnd = this->requestEntity.find("\n", hostStart);
+        if (lineEnd < this->requestEntity.length())
+        {
+            line = this->requestEntity.substr(hostStart, lineEnd - hostStart);
+            lineEnd = 0;
+            hostStart = 0;
+            hostStart = line.find(" ");
+            lineEnd = line.find(":", hostStart);
+            this->host = line.substr(hostStart+1, (lineEnd - hostStart) - 1);
+            lineEnd = 0;
+            hostStart = 0;
+            int doublePoint = 0;
+            hostStart = line.find(":");
+            doublePoint = line.find(":", hostStart+1);
+            this->port = line.substr(doublePoint+1, (line.length() - doublePoint));
+        }
+         else 
+            line = "";
+    }
+}
+
+void    Request::checkWichServer()
+{
+    parseHostPort();
+    
+}
+Response Request::runHttpMethod(DataConfig config) {
+    Response response;
+    if (requestMethod.compare("GET") == 0) {
+        response = RequestMethod::GET(*this, config);
+    } 
+    else if (requestMethod.compare("POST") == 0) {
+        checkWichServer();
+        // std::cout <<"host " << this->host << "\n";
+
+        // std::cout << this->requestEntity << "\n";
+        std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
+        // std::cout << this->httpVersion << "\n";
+        
+        // response = RequestMethod::POST(*this, config);
+    }
+    //  else if (requestMethod.compare("DELETE") == 0) {
+    //     response = RequestMethod::DELETE(*this, config);
+    // }
+    return (response);
+}
+
 Response Request::handleRequest(DataConfig config) {
-    int errorCode = validRequest();
+    Response response;
+    int errorCode = validRequest(config);
     if (errorCode != 0) {
-        Response response;
-        if (errorCode == PERMANENTLY_MOVED) {
+        if (errorCode >= 300 && errorCode <= 308) {
             response.setHeader("Location:", requestRessource + "/");
         }
         response.buildResponse(errorCode);
-        // std::cout << response.getResponseEntity();
         return (response);
     }
-    buildPath(config);
-    std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
-    if (locationData != config.getLocation().end()) {
-        std::cout << locationData->_return.path << std::endl;
+    // check if there is a redirection
+    std::vector<Location>::iterator it = config.getSpecificLocation(location);
+    if (it != config.getLocation().end()) {
+        if (!it->_return.path.empty() && !it->_return.status.empty()) {
+            response.setHeader("Location:", it->_return.path);
+            response.buildResponse(atoi(it->_return.status.c_str()));
+            return (response);
+        }
     }
-    Response response = RequestMethod::GET(*this, config);
-    // std::cout << response.getResponseEntity();
+    // check if the method is allowed on the requested ressource
+    if (!methodAllowed(config)) {
+        response.buildResponse(METHOD_NOT_ALLOWED);
+        return (response);
+    }
+    response = runHttpMethod(config);
     return response;
 }

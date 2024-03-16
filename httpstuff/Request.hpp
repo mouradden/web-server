@@ -18,16 +18,25 @@ class Request {
 
         std::string path;
         std::string location;
-
+        std::string host;
+        std::string port;
         // validation
         int checkAllowedChars(std::string value);
-        int validRequest();
+        int validateUri(DataConfig &config);
+        int validRequest(DataConfig config);
+
+        void buildPath(DataConfig &config);
 
         // parsing
         void parseRequest(std::string buffer, std::string delim);
         void parseRequestLine(std::string buffer);
         void parseHeaders(std::string buffer);
         std::string& trimSpaces(std::string& val);
+        // karim request
+        // void    checkValidPath();
+        
+        void        checkWichServer();
+        void        parseHostPort();
     public:
         // constructor
         Request(std::string buffer);
@@ -41,7 +50,9 @@ class Request {
         std::string getBody() const;
         std::string getPath() const;
         std::string getLocation() const;
+        int methodAllowed(DataConfig config);
         Response handleRequest(DataConfig config);
-        void buildPath(DataConfig config);
-        void printHeaders();
+        Response runHttpMethod(DataConfig config);
+        // void buildPath(DataConfig config);
+        // void printHeaders();
 };

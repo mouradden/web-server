@@ -12,6 +12,9 @@
 #include <iostream>
 #include <sstream>
 #include <fcntl.h>
+#include <dirent.h>
+#include <string>
+#include <cstring>
 
 #include <vector>
 #include <map>
@@ -22,6 +25,7 @@ enum statusCodes {
     // CLIENT SHOULD NOT REPEAT THE REQUEST WITHOUT MODFYING THE REQUEST
     PERMANENTLY_MOVED = 301,
     Found = 302,
+    TEMPORARY_REDIRECT = 307,
     BAD_REQUEST = 400,
     // CLIENT AUTHENTIFICATION FAILED, MUST SEND WWW-AUTHENTICATE HEADER IN SOME CASES
     UNAUTHORIZED = 401,
@@ -52,7 +56,8 @@ enum statusCodes {
     // SERVER DOESN'T SUPPORT MEDIA TYPE OF REQUEST ENTITY
     UNSUPPORTED_MEDIA_TYPE = 415,
     RANGE_NOT_SATISFIABLE = 416,
-    EXPECTATION_FAILED = 417
+    EXPECTATION_FAILED = 417,
+    NOT_IMPLEMENTED = 501
 };
 
 class Server

@@ -43,9 +43,9 @@ Response::Response() {
     contentLength = 0;
     body = "";
     responseEntity = "";
-    socket = 0;
-    state = 0;
-    offset = 0;
+    // socket = 0;
+    // state = 0;
+    // offset = 0;
 };
 
 Response::Response(const Response& ref) {
@@ -56,9 +56,9 @@ Response::Response(const Response& ref) {
     contentLength = ref.contentLength;
     body = ref.body;
     responseEntity = ref.responseEntity;
-    socket = ref.offset;
-    state = ref.state;
-    offset = ref.offset;
+    // socket = ref.offset;
+    // state = ref.state;
+    // offset = ref.offset;
 };
 
 
@@ -70,9 +70,9 @@ Response& Response::operator=(const Response &ref) {
     contentType = ref.contentType;
     contentLength = ref.contentLength;
     body = ref.body;
-    socket = ref.offset;
-    state = ref.state;
-    offset = ref.offset;
+    // socket = ref.offset;
+    // state = ref.state;
+    // offset = ref.offset;
     return (*this);
 }
 
@@ -121,18 +121,18 @@ std::string Response::getResponseEntity() {
     return (responseEntity);
 }
 
-int Response::getSocket() {
-    return (socket);
-}
+// int Response::getSocket() {
+//     return (socket);
+// }
 
-int Response::getState() {
-    return (state);
-}
+// int Response::getState() {
+//     return (state);
+// }
 
 
-int Response::getFileOffset() {
-    return (offset);
-}
+// int Response::getFileOffset() {
+//     return (offset);
+// }
 
 // ************ SETTERS ************
 
@@ -152,17 +152,17 @@ void Response::setHeader(std::string key, std::string value) {
     this->headers[key] = value;
 }
 
-void Response::setSocket(int socket) {
-    this->socket = socket;
-}
+// void Response::setSocket(int socket) {
+//     this->socket = socket;
+// }
 
-void Response::setState(int state) {
-    this->state = state;
-}
+// void Response::setState(int state) {
+//     this->state = state;
+// }
 
-void Response::setFileOffset(int offset) {
-    this->offset = offset;
-}
+// void Response::setFileOffset(int offset) {
+//     this->offset = offset;
+// }
 
 void Response::setStatus(unsigned int code) {
     switch(code) {
@@ -176,6 +176,9 @@ void Response::setStatus(unsigned int code) {
             status = "Found";
             break ;
         // 4XX status codes
+        case TEMPORARY_REDIRECT:
+            status = "Temporary Redirect";
+            break ;
         case BAD_REQUEST:
             status =  "Bad Request";
             break ;
@@ -199,6 +202,9 @@ void Response::setStatus(unsigned int code) {
             break ;
         case REQUEST_URI_EXCEEDED:
             status =  "URI Too Long";
+            break ;
+        case NOT_IMPLEMENTED:
+            status =  "Not Implemented";
             break ;
         default:
             status = "";
