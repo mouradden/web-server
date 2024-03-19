@@ -7,7 +7,7 @@
 #include "parse/DataConfig.hpp"
 #include <poll.h>
 #include <algorithm>
-
+#define BUFFER_SIZE 4096
 int sendResponse(int socket, Client& client)
 {
     size_t totalSize = client.getResponseBuffer().size();
@@ -19,7 +19,7 @@ int sendResponse(int socket, Client& client)
             return -1;
         }
         client.incremetOffset(sendResult);
-        std::cout << "socket = " << socket << "  ------ date sent : " << client.getSentOffset() << "\n";
+        std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << "\n";
         return 1;
     }
     return 0;
@@ -49,20 +49,16 @@ int main()
         fds.push_back(pfd);
         Clients.insert(std::make_pair(fd, Client()));
     }
-    std::vector<int> fdsToRemove;
+    // std::vector<int> fdsToRemove;
     while (true) 
     {
-        int pollResult = poll(fds.data(), fds.size(), 1000);
+        int pollResult = poll(fds.data(), fds.size(), 0);
         if (pollResult == -1)
         {
             std::cerr << "Error in poll\n";
             return 1;
         }
-        // if (pollResult == 0)
-        // {
-        //     std::cout << "Timeout occurred\n";
-        //     continue;
-        // }
+        std::vector<pollfd> requestClients;
         for (size_t i = 0; i < fds.size(); i++)
         {
             if (fds[i].revents & POLLIN)
@@ -88,13 +84,13 @@ int main()
                         pollfd pfd;
                         pfd.fd = clientSocket;
                         pfd.events = POLLIN;
+                        requestClients.push_back(pfd);
                         fds.push_back(pfd);
                         server.setServer(clientSocket, server.getServers()[fds[i].fd]);
                     }
                 }
             }
         }
-
         for (size_t i = 0; i < fds.size(); i++)
         {
             // std::cout << "read socket = " << fds[i].fd << "\n";
@@ -103,23 +99,41 @@ int main()
             if (fds[i].revents & POLLIN && it == sockets.end())
             {
                 int clientSocket = fds[i].fd;
-                char buffer[4096];
-                ssize_t bytesRead = recv(clientSocket, buffer, 4096 - 1, 0);
+                char buffer[BUFFER_SIZE];
+                memset(buffer, 0, BUFFER_SIZE);
+                ssize_t bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
                 if (bytesRead > 0)
                 {
-                    std::cout << "Handling request for socket: " << clientSocket << std::endl;
+                    // std::cout << "request : " << buffer << "\n";
+                    // std::cout << "request size = " << std::string(buffer).size() << "\n";
                     DataConfig config = server.getServers()[clientSocket];
-                    Request req(buffer);
-                    Response response = req.handleRequest(config);
-                    
-                    Clients[clientSocket].getRequestBuffer().clear();
-                    Clients[clientSocket].getResponseBuffer().clear();
-                    Clients[clientSocket].setOffset(0);
+                    if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") == std::string::npos)
+                    {
+                        Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
+                        // std::cout << "*********Buffer request : **********\n";
+                        // std::cout << Clients[clientSocket].getRequestBuffer() << "\n";
+                        // std::cout << "*********************\n";
+                        if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") != std::string::npos)
+                        {
+                            // Clients[clientSocket].getRequestBuffer().clear();
+                            Clients[clientSocket].getResponseBuffer().clear();
+                            Clients[clientSocket].setOffset(0);
+                            // std::cout << "#########  Handling request for socket: " << clientSocket << std::endl;
+                            Request req(Clients[clientSocket].getRequestBuffer());
+                            Response response = req.handleRequest(config);
+                            // std::cout << "request : " << Clients[clientSocket].getRequestBuffer() << "\n";
+                            // std::cout << "request size = " << Clients[clientSocket].getRequestBuffer().size() << "\n";
+                            
 
-                    Clients[clientSocket].setRequest(buffer);
-                    Clients[clientSocket].setResponse(response.getResponseEntity());
-                    fds[i].events |= POLLOUT;
-                    fds[i].events &= ~POLLIN;
+                            // Clients[clientSocket].setRequest(buffer);
+                            // Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
+                            Clients[clientSocket].setResponse(response.getResponseEntity());
+                            fds[i].events |= POLLOUT;
+                            fds[i].events &= ~POLLIN;
+
+
+                        }
+                    }
                 } 
                 else if (bytesRead == 0)
                 {
