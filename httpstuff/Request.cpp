@@ -174,7 +174,7 @@ int Request::validateUri(DataConfig &config) {
     } else if (S_ISDIR(statbuf.st_mode) && hasSlash) {
         if (requestMethod.compare("GET") == 0)
             return (PERMANENTLY_MOVED);
-        else if (requestRessource.compare("POST") == 0 || requestRessource.compare("DELETE") == 0) {
+        else if (requestMethod.compare("POST") == 0 || requestMethod.compare("DELETE") == 0) {
             return (TEMPORARY_REDIRECT);
         }
     } else {
@@ -223,20 +223,20 @@ int Request::methodAllowed(DataConfig config) {
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (locationData != config.getLocation().end()) {
         if (requestMethod.compare("GET") == 0) {
-            if (locationData->methods.get == 0)
-                return (0);
+            if (locationData->methods.get == 1)
+                return (1);
         } else if (requestMethod.compare("POST") == 0) {
-            if (locationData->methods.post == 0)
-                return (0);
+            if (locationData->methods.post == 1)
+                return (1);
         } else if (requestMethod.compare("DELETE") == 0) {
-            if (locationData->methods._delete == 0)
-                return (0);
+            if (locationData->methods._delete == 1)
+                return (1);
         }
     } else if (requestRessource == "/") {
         if (requestMethod.compare("GET") == 0)
-            return (0);
+            return (1);
     }
-    return (1);
+    return (0);
 }
 
 void        Request::parseHostPort()
