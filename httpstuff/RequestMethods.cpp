@@ -35,7 +35,8 @@ void fillResponse(Response &response, std::ostringstream& ss, std::string filety
 void handleFolder(Response &response, std::vector<Location>::iterator &it, DataConfig &config, std::string path) {
     std::ostringstream ss;
     if (it != config.getLocation().end()) {
-        std::ifstream file(path + it->index);
+        std::string filename = it->index.empty() ? config.getIndex() : it->index;
+        std::ifstream file(path + filename);
         if (!file.is_open()) {
             if (it->autoIndex) {
                 ss << generateHTML(path.c_str());

@@ -261,7 +261,7 @@ void        Request::parseHostPort()
             doublePoint = line.find(":", hostStart+1);
             this->port = line.substr(doublePoint+1, (line.length() - doublePoint));
         }
-         else 
+        else 
             line = "";
     }
 }
@@ -305,6 +305,7 @@ Response Request::handleRequest(DataConfig config) {
     // check if there is a redirection
     std::vector<Location>::iterator it = config.getSpecificLocation(location);
     if (it != config.getLocation().end()) {
+        std::cout << "Auto index of location is " << it->location << " " << it->autoIndex << std::endl;
         if (!it->_return.path.empty() && !it->_return.status.empty()) {
             response.setHeader("Location:", it->_return.path);
             response.buildResponse(atoi(it->_return.status.c_str()));
