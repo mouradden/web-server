@@ -17,7 +17,7 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        alias /folder/
+        root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST
         cgi_extention   .py

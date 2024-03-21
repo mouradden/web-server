@@ -102,6 +102,9 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     return (response);
 }
 
+// void deleteDir(Request &request, DataConfig config, std::string path) {
+// }
+
 Response RequestMethod::DELETE(Request &request, DataConfig config) {
     Response response;
     std::string requestedRessource = request.getRequestRessource();

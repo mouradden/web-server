@@ -126,7 +126,7 @@ std::string getLocationPath(DataConfig &config, std::vector<Location>::iterator 
     if (location->root.empty() && location->alias.empty()) {
         return (config.getRoot() + requestRessource.substr(1));
     } else if (!location->root.empty()) {
-        return (location->root);
+        return (location->root + requestRessource.substr(1));
     } else {
         return (config.getRoot() + location->alias.substr(1));
     }
