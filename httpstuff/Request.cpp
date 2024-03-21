@@ -223,20 +223,20 @@ int Request::methodAllowed(DataConfig config) {
     std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (locationData != config.getLocation().end()) {
         if (requestMethod.compare("GET") == 0) {
-            if (locationData->methods.get == 1)
-                return (1);
+            if (locationData->methods.get == 0)
+                return (0);
         } else if (requestMethod.compare("POST") == 0) {
-            if (locationData->methods.post == 1)
-                return (1);
+            if (locationData->methods.post == 0)
+                return (0);
         } else if (requestMethod.compare("DELETE") == 0) {
-            if (locationData->methods._delete == 1)
-                return (1);
+            if (locationData->methods._delete == 0)
+                return (0);
         }
     } else if (requestRessource == "/") {
-        if (requestMethod.compare("GET") == 0)
-            return (1);
+        if (requestMethod.compare("GET") != 0)
+            return (0);
     }
-    return (0);
+    return (1);
 }
 
 void        Request::parseHostPort()
@@ -313,7 +313,8 @@ Response Request::handleRequest(DataConfig config) {
         }
     }
     // check if the method is allowed on the requested ressource
-    if (!methodAllowed(config)) {
+    if (methodAllowed(config) == 0) {
+        std::cout << "method not allowed\n";
         response.buildResponse(METHOD_NOT_ALLOWED);
         return (response);
     }
