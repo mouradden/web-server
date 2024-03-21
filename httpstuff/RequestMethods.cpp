@@ -90,14 +90,31 @@ Response buildResponseWithFile(DataConfig config, std::string path, std::string 
 
 
 Response RequestMethod::GET(Request& request, DataConfig config) {
-    std::string requestedRessource = request.getRequestRessource();
     Response response;
+    std::string requestedRessource = request.getRequestRessource();
     if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // if request wants a directory
         response = buildResponseWithFile(config, request.getPath(), request.getLocation());
     } else {
         // specific ressource is requested instead of default
         response = buildResponseWithFile(config, request.getPath(), request.getLocation());
+    }
+    return (response);
+}
+
+Response RequestMethod::DELETE(Request &request, DataConfig config) {
+    Response response;
+    std::string requestedRessource = request.getRequestRessource();
+    if (requestedRessource[requestedRessource.size() - 1] == '/') {
+        // if request wants a directory
+        config.getRoot();
+    } else {
+        if (std::remove(request.getPath().c_str()) != 0) {
+            response.buildResponse(NOT_FOUND);
+        } else {
+            std::string res = "HTTP/1.1 204 No Content\r\n\r\n";
+            response.setResponseEntity(res);
+        }
     }
     return (response);
 }

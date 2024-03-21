@@ -113,6 +113,14 @@ int Response::sendResponse(int socket, Client client) {
     return 0;
 }
 
+std::string Response::getContentType() {
+    return (contentType);
+}
+
+unsigned int Response::getContentLength() {
+    return (contentLength);
+}
+
 std::string Response::getStatus() {
     return (status);
 }

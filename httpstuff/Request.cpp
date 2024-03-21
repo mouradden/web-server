@@ -286,9 +286,9 @@ Response Request::runHttpMethod(DataConfig config) {
         
         // response = RequestMethod::POST(*this, config);
     }
-    //  else if (requestMethod.compare("DELETE") == 0) {
-    //     response = RequestMethod::DELETE(*this, config);
-    // }
+    else if (requestMethod.compare("DELETE") == 0) {
+        response = RequestMethod::DELETE(*this, config);
+    }
     return (response);
 }
 
