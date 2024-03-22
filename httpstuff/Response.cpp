@@ -177,6 +177,9 @@ void Response::setStatus(unsigned int code) {
         case OK:
              status = "OK";
              break ;
+        case NO_CONTENT:
+            status = "No Content";
+            break ;
         case PERMANENTLY_MOVED:
             status = "Permanently Moved";
             break ;

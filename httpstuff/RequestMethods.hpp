@@ -5,6 +5,8 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include <cstdio>
+#include <dirent.h>
+
 
 class Request;
 class Response;

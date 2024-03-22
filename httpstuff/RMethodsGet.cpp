@@ -101,23 +101,3 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     }
     return (response);
 }
-
-// void deleteDir(Request &request, DataConfig config, std::string path) {
-// }
-
-Response RequestMethod::DELETE(Request &request, DataConfig config) {
-    Response response;
-    std::string requestedRessource = request.getRequestRessource();
-    if (requestedRessource[requestedRessource.size() - 1] == '/') {
-        // if request wants a directory
-        config.getRoot();
-    } else {
-        if (std::remove(request.getPath().c_str()) != 0) {
-            response.buildResponse(NOT_FOUND);
-        } else {
-            std::string res = "HTTP/1.1 204 No Content\r\n\r\n";
-            response.setResponseEntity(res);
-        }
-    }
-    return (response);
-}
