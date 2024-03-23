@@ -9,22 +9,19 @@ server {
     server_name example.com
     host localhost
     
-    root /Users/mdenguir/Desktop/final/
+    root /Users/nachab/Desktop/latestWebServ/
 
-    autoindex on
     index index.html
 
     # Configure error pages
     error_page 404 /404.html
 
     location /image/ {
-        root ./image
+        root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST
-        autoindex on
         cgi_extention   .py
         cgi_bin      dd   
-        return 302 /Users/mdenguir/Desktop/imgs/
     }
 
     location /txt/ {
@@ -34,7 +31,6 @@ server {
         methods POST
         autoindex off
         cgi_extention   .dd
-        cgi_bin      dff   
-
+        cgi_bin      dff
     }
 }

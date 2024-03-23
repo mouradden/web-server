@@ -36,7 +36,8 @@ void fillResponse(Response &response, std::ostringstream& ss, std::string filety
 void handleFolder(Response &response, std::vector<Location>::iterator &it, DataConfig &config, std::string path) {
     std::ostringstream ss;
     if (it != config.getLocation().end()) {
-        std::ifstream file(path + it->index);
+        std::string filename = it->index.empty() ? config.getIndex() : it->index;
+        std::ifstream file(path + filename);
         if (!file.is_open()) {
             if (it->autoIndex) {
                 ss << generateHTML(path.c_str());
@@ -90,14 +91,10 @@ Response buildResponseWithFile(DataConfig config, std::string path, std::string 
 
 
 Response RequestMethod::GET(Request& request, DataConfig config) {
-    std::string requestedRessource = request.getRequestRessource();
     Response response;
-    if (requestedRessource.compare("/") == 0) {
-        // request is empty, send index of root
-        response = buildResponseWithFile(config, request.getPath() + config.getIndex(), request.getLocation());
-    } else if (requestedRessource[requestedRessource.size() - 1] == '/') {
+    std::string requestedRessource = request.getRequestRessource();
+    if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // if request wants a directory
-        std::cout << "entered directory test\n";
         response = buildResponseWithFile(config, request.getPath(), request.getLocation());
     } else {
         // specific ressource is requested instead of default

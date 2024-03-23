@@ -128,7 +128,7 @@ std::string getLocationPath(DataConfig &config, std::vector<Location>::iterator 
     if (location->root.empty() && location->alias.empty()) {
         return (config.getRoot() + requestRessource.substr(1));
     } else if (!location->root.empty()) {
-        return (location->root);
+        return (location->root + requestRessource.substr(1));
     } else {
         return (config.getRoot() + location->alias.substr(1));
     }
@@ -176,7 +176,7 @@ int Request::validateUri(DataConfig &config) {
     } else if (S_ISDIR(statbuf.st_mode) && hasSlash) {
         if (requestMethod.compare("GET") == 0)
             return (PERMANENTLY_MOVED);
-        else if (requestRessource.compare("POST") == 0 || requestRessource.compare("DELETE") == 0) {
+        else if (requestMethod.compare("POST") == 0 || requestMethod.compare("DELETE") == 0) {
             return (TEMPORARY_REDIRECT);
         }
     } else {
@@ -235,7 +235,7 @@ int Request::methodAllowed(DataConfig config) {
                 return (0);
         }
     } else if (requestRessource == "/") {
-        if (requestMethod.compare("GET") == 0)
+        if (requestMethod.compare("GET") != 0)
             return (0);
     }
     return (1);
@@ -263,7 +263,7 @@ void        Request::parseHostPort()
             doublePoint = line.find(":", hostStart+1);
             this->port = line.substr(doublePoint+1, (line.length() - doublePoint));
         }
-         else 
+        else 
             line = "";
     }
 }
@@ -288,9 +288,9 @@ Response Request::runHttpMethod(DataConfig config) {
         
         // response = RequestMethod::POST(*this, config);
     }
-    //  else if (requestMethod.compare("DELETE") == 0) {
-    //     response = RequestMethod::DELETE(*this, config);
-    // }
+    else if (requestMethod.compare("DELETE") == 0) {
+        response = RequestMethod::DELETE(*this, config);
+    }
     return (response);
 }
 
@@ -307,6 +307,7 @@ Response Request::handleRequest(DataConfig config) {
     // check if there is a redirection
     std::vector<Location>::iterator it = config.getSpecificLocation(location);
     if (it != config.getLocation().end()) {
+        std::cout << "Auto index of location is " << it->location << " " << it->autoIndex << std::endl;
         if (!it->_return.path.empty() && !it->_return.status.empty()) {
             response.setHeader("Location:", it->_return.path);
             response.buildResponse(atoi(it->_return.status.c_str()));
@@ -314,10 +315,14 @@ Response Request::handleRequest(DataConfig config) {
         }
     }
     // check if the method is allowed on the requested ressource
-    // if (!methodAllowed(config)) {
-    //     response.buildResponse(METHOD_NOT_ALLOWED);
-    //     return (response);
-    // }
+    if (methodAllowed(config) == 0) {
+        std::cout << "method not allowed\n";
+        response.buildResponse(METHOD_NOT_ALLOWED);
+        return (response);
+    }
     response = runHttpMethod(config);
+    // std::string green = "\033[1;32m";
+    // std::string reset = "\033[0m";
+    // std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
     return response;
 }

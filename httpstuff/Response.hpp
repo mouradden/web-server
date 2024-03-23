@@ -42,6 +42,8 @@ class Response {
         void setResponseEntity(std::string response);
         void setFileOffset(int offset);
 
+        std::string getContentType();
+        unsigned int getContentLength();
         std::string getResponseEntity();
         std::string getStatus();
         // int getSocket();
