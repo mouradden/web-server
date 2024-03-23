@@ -18,6 +18,7 @@ std::string Response::getMimeType(std::string fileExtension) {
 
     // audio mime type
     contentType.insert(std::make_pair("mp3", "audio/mpeg"));
+    contentType.insert(std::make_pair("mp4", "video/mp4"));
     contentType.insert(std::make_pair("ogg", "audio/ogg"));
     contentType.insert(std::make_pair("wav", "audio/wav"));
     contentType.insert(std::make_pair("aac", "audio/aac"));
@@ -99,8 +100,8 @@ void Response::buildResponse(unsigned int code) {
 int Response::sendResponse(int socket, Client client) {
     size_t totalSize = client.getResponseBuffer().size();
 
-    std::cout << "Total bytes sent: " << client.getSentOffset() << std::endl;
-    std::cout << "Response size: " << totalSize << std::endl;
+    // std::cout << "Total bytes sent: " << client.getSentOffset() << std::endl;
+    // std::cout << "Response size: " << totalSize << std::endl;
     if (client.getSentOffset() < totalSize) {
         size_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), sizeof(client.getResponseBuffer().c_str() + client.getSentOffset()), 0);
         if ((int)sendResult == -1) {

@@ -319,8 +319,8 @@ Response Request::handleRequest(DataConfig config) {
         return (response);
     }
     response = runHttpMethod(config);
-    std::string green = "\033[1;32m";
-    std::string reset = "\033[0m";
-    std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
+    // std::string green = "\033[1;32m";
+    // std::string reset = "\033[0m";
+    // std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
     return response;
 }
