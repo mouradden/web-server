@@ -29,6 +29,7 @@ void fillResponse(Response &response, std::ostringstream& ss, std::string filety
     response.setContentType(filetype);
     response.setContentLength(ss.str().size());
     response.setResponseBody(ss.str());
+    // response.setHeader("Transfer-Encoding:", "chunked");
     response.buildResponse(OK);
 }
 

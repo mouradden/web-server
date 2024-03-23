@@ -69,6 +69,7 @@ void Request::parseRequestLine(std::string buffer) {
     std::string token;
 
     while (std::getline(requestLine, token, ' ')) {
+        // std::cout << "token : " << token << "\n";
         tokens.push_back(token);
     }
     this->requestMethod = trimSpaces(tokens[0]);
@@ -115,6 +116,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
     for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
         if (i == 0) {
+            // std::cout << "======> values |" << values[i] << "|\n";
             parseRequestLine(values[i]);
         } else {
             parseHeaders(values[i]);
@@ -281,7 +283,7 @@ Response Request::runHttpMethod(DataConfig config) {
         // std::cout <<"host " << this->host << "\n";
 
         // std::cout << this->requestEntity << "\n";
-        std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
+        // std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
         // std::cout << this->httpVersion << "\n";
         
         // response = RequestMethod::POST(*this, config);
@@ -312,10 +314,10 @@ Response Request::handleRequest(DataConfig config) {
         }
     }
     // check if the method is allowed on the requested ressource
-    if (!methodAllowed(config)) {
-        response.buildResponse(METHOD_NOT_ALLOWED);
-        return (response);
-    }
+    // if (!methodAllowed(config)) {
+    //     response.buildResponse(METHOD_NOT_ALLOWED);
+    //     return (response);
+    // }
     response = runHttpMethod(config);
     return response;
 }
