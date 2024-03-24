@@ -209,10 +209,10 @@ int Request::validRequest(DataConfig config) {
         return (REQUEST_URI_EXCEEDED);
     }
     // if client request body is larger than maximum body allowed in config file (change 8000 value to config file value
-    if (requestEntity.size() > 8000) {
-        std::cout << "request entity too large\n";
-        return (ENTITY_LENGTH_EXCEEDED);
-    }
+    // if (requestEntity.size() > 8000) {
+    //     std::cout << "request entity too large\n";
+    //     return (ENTITY_LENGTH_EXCEEDED);
+    // }
     if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
         return (NOT_IMPLEMENTED);
     }
@@ -315,11 +315,11 @@ Response Request::handleRequest(DataConfig config) {
         }
     }
     // check if the method is allowed on the requested ressource
-    if (methodAllowed(config) == 0) {
-        std::cout << "method not allowed\n";
-        response.buildResponse(METHOD_NOT_ALLOWED);
-        return (response);
-    }
+    // if (methodAllowed(config) == 0) {
+    //     std::cout << "method not allowed\n";
+    //     response.buildResponse(METHOD_NOT_ALLOWED);
+    //     return (response);
+    // }
     response = runHttpMethod(config);
     // std::string green = "\033[1;32m";
     // std::string reset = "\033[0m";
