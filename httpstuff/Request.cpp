@@ -73,6 +73,7 @@ void Request::parseRequestLine(std::string buffer) {
     std::string token;
 
     while (std::getline(requestLine, token, ' ')) {
+        // std::cout << "token : " << token << "\n";
         tokens.push_back(token);
     }
     this->requestMethod = trimSpaces(tokens[0]);
@@ -125,6 +126,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
     for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
         if (i == 0) {
+            // std::cout << "======> values |" << values[i] << "|\n";
             parseRequestLine(values[i]);
         } else {
             parseHeaders(values[i]);
@@ -217,10 +219,10 @@ int Request::validRequest(DataConfig config) {
         return (REQUEST_URI_EXCEEDED);
     }
     // if client request body is larger than maximum body allowed in config file (change 8000 value to config file value
-    if (requestEntity.size() > 8000) {
-        std::cout << "request entity too large\n";
-        return (ENTITY_LENGTH_EXCEEDED);
-    }
+    // if (requestEntity.size() > 8000) {
+    //     std::cout << "request entity too large\n";
+    //     return (ENTITY_LENGTH_EXCEEDED);
+    // }
     if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
         return (NOT_IMPLEMENTED);
     }
@@ -291,7 +293,7 @@ Response Request::runHttpMethod(DataConfig config) {
         // std::cout <<"host " << this->host << "\n";
 
         // std::cout << this->requestEntity << "\n";
-        std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
+        // std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
         // std::cout << this->httpVersion << "\n";
         
         // response = RequestMethod::POST(*this, config);
@@ -323,11 +325,11 @@ Response Request::handleRequest(DataConfig config) {
         }
     }
     // check if the method is allowed on the requested ressource
-    if (methodAllowed(config) == 0) {
-        std::cout << "method not allowed\n";
-        response.buildResponse(METHOD_NOT_ALLOWED);
-        return (response);
-    }
+    // if (methodAllowed(config) == 0) {
+    //     std::cout << "method not allowed\n";
+    //     response.buildResponse(METHOD_NOT_ALLOWED);
+    //     return (response);
+    // }
     response = runHttpMethod(config);
     std::string green = "\033[1;32m";
     std::string reset = "\033[0m";

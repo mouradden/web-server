@@ -8,6 +8,13 @@
 #include "parse/DataConfig.hpp"
 #include <poll.h>
 #include <algorithm>
+
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+
+
+
 #define BUFFER_SIZE 4096
 int sendResponse(int socket, Client& client)
 {
@@ -20,12 +27,53 @@ int sendResponse(int socket, Client& client)
             return -1;
         }
         client.incremetOffset(sendResult);
-        std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << "\n";
+        std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << " / " << client.getResponseBuffer().size() << "\n";
         return 1;
     }
     return 0;
 }
 
+void parseChunkedRequest(std::string& requestBuffer) {
+    std::string buffer;
+    size_t pos = 0;
+
+    pos = requestBuffer.find("\r\n\r\n");
+    if (pos == std::string::npos) {
+        std::cerr << "Error: Couldn't find end of headers" << std::endl;
+        return;
+    }
+
+    buffer += requestBuffer.substr(0, pos + 4);
+    pos += 4; // Move past the end of headers
+
+    while (true) {
+        if (pos >= requestBuffer.size())
+            break;
+         if (!isdigit(requestBuffer[pos]) && !(requestBuffer[pos] <= 'f' && requestBuffer[pos] >= 'a'))
+            break ;
+        size_t chunkSizePos = requestBuffer.find("\r\n", pos);
+        if (chunkSizePos == std::string::npos) {
+            std::cerr << "Error: Couldn't find chunk size" << std::endl;
+            return;
+        }
+
+        int chunkSize;
+        std::istringstream(requestBuffer.substr(pos, chunkSizePos - pos)) >> std::hex >> chunkSize;
+        std::cout << "length = " << chunkSizePos - pos << " size = " <<  chunkSize << "\n";
+        if (chunkSize <= 0) {
+            // End of chunks
+            break;
+        }
+
+        buffer += requestBuffer.substr(chunkSizePos + 2, chunkSize);
+        pos = chunkSizePos + 2 + chunkSize; // 2 for CRLF, additional 2 for next CRLF
+        if (pos + 1 < requestBuffer.size() && requestBuffer[pos] == '\r' && requestBuffer[pos + 1] == '\n')
+        {
+            pos += 2;
+        }
+    }
+    requestBuffer = buffer;
+}
 int main()
 {
     Server server;
@@ -52,7 +100,7 @@ int main()
     // std::vector<int> fdsToRemove;
     while (true) 
     {
-        int pollResult = poll(fds.data(), fds.size(), 0);
+        int pollResult = poll(fds.data(), fds.size(), 1000);
         if (pollResult == -1)
         {
             std::cerr << "Error in poll\n";
@@ -93,7 +141,6 @@ int main()
         }
         for (size_t i = 0; i < fds.size(); i++)
         {
-            // std::cout << "read socket = " << fds[i].fd << "\n";
             std::vector<int> sockets = server.getServerSockets();
             std::vector<int>::iterator it = std::find(sockets.begin(), sockets.end(), fds[i].fd);
             if (fds[i].revents & POLLIN && it == sockets.end())
@@ -104,34 +151,35 @@ int main()
                 ssize_t bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
                 if (bytesRead > 0)
                 {
-                    // std::cout << "request : " << buffer << "\n";
-                    // std::cout << "request size = " << std::string(buffer).size() << "\n";
                     DataConfig config = server.getServers()[clientSocket];
-                    if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") == std::string::npos)
+                    Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
+                    if (Clients[clientSocket].getRequestBuffer().find("Transfer-Encoding: chunked") != std::string::npos)
                     {
-                        Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
-                        // std::cout << "*********Buffer request : **********\n";
-                        // std::cout << Clients[clientSocket].getRequestBuffer() << "\n";
-                        // std::cout << "*********************\n";
-                        if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") != std::string::npos)
+                        // std::cout << "********************chunked*******\n";
+                        // Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
+                        // std::cout << "--------------> request before : |" << GREEN << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+                        if (Clients[clientSocket].getRequestBuffer().find("\r\n0") != std::string::npos)
                         {
-                            // Clients[clientSocket].getRequestBuffer().clear();
-                            Clients[clientSocket].getResponseBuffer().clear();
-                            Clients[clientSocket].setOffset(0);
-                            // std::cout << "#########  Handling request for socket: " << clientSocket << std::endl;
-                            std::cout << "request : \n|" << Clients[clientSocket].getRequestBuffer() << "|\n";
+                            parseChunkedRequest(Clients[clientSocket].getRequestBuffer());
+                        // std::cout << "--------------> request after : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
                             Request req(Clients[clientSocket].getRequestBuffer());
                             Response response = req.handleRequest(config);
-                            // std::cout << "request size = " << Clients[clientSocket].getRequestBuffer().size() << "\n";
-                            
-
-                            // Clients[clientSocket].setRequest(buffer);
-                            // Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
                             Clients[clientSocket].setResponse(response.getResponseEntity());
                             fds[i].events |= POLLOUT;
                             fds[i].events &= ~POLLIN;
-
-
+                        }
+                    }
+                    else
+                    {
+                        if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") != std::string::npos)
+                        {
+                            // std::cout << "********************request *******\n";
+                            // std::cout << "--------------> request before : \n|" << GREEN << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+                            Request req(Clients[clientSocket].getRequestBuffer());
+                            Response response = req.handleRequest(config);
+                            Clients[clientSocket].setResponse(response.getResponseEntity());
+                            fds[i].events |= POLLOUT;
+                            fds[i].events &= ~POLLIN;
                         }
                     }
                 } 
@@ -144,8 +192,9 @@ int main()
                 }
                 else
                 {
-                    std::cerr << "recv return  = " << bytesRead << "\n";
-                    std::cerr << "Error receiving data from client, socket: " << clientSocket << "\n";
+                    // std::cerr << "recv return  = " << bytesRead << "\n";
+                    // std::cerr << "Error receiving data from client, socket: " << clientSocket << "\n";
+                    // perror("recv");
                     close(clientSocket);
                     fds.erase(fds.begin() + i);
                     Clients.erase(clientSocket);

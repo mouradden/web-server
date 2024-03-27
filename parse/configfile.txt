@@ -9,7 +9,7 @@ server {
     server_name example.com
     host localhost
     
-    root /Users/nachab/Desktop/latestWebServ/
+    root /Users/mdenguir/Desktop/final/
 
     index index.html
 
@@ -17,7 +17,7 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        root /Users/nachab/Desktop/latestWebServ/
+        root /Users/mdenguir/Desktop/final/
         index index.html
         methods GET POST
         cgi_extention   .py
