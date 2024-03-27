@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <list>
@@ -34,7 +35,6 @@ int main()
     {
         server.createSocket(config.getData()[i]);
     }
-    
     server.createServer(config.getData());
     server.putServerOnListening();
 
@@ -119,9 +119,9 @@ int main()
                             Clients[clientSocket].getResponseBuffer().clear();
                             Clients[clientSocket].setOffset(0);
                             // std::cout << "#########  Handling request for socket: " << clientSocket << std::endl;
+                            std::cout << "request : \n|" << Clients[clientSocket].getRequestBuffer() << "|\n";
                             Request req(Clients[clientSocket].getRequestBuffer());
                             Response response = req.handleRequest(config);
-                            // std::cout << "request : " << Clients[clientSocket].getRequestBuffer() << "\n";
                             // std::cout << "request size = " << Clients[clientSocket].getRequestBuffer().size() << "\n";
                             
 

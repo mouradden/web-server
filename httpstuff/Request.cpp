@@ -32,6 +32,10 @@ std::string Request::getHttpVersion() const {
     return (this->httpVersion);
 }
 
+std::string Request::getQueryString() const {
+    return (this->queryString);
+}
+
 std::string Request::getHeader(std::string key) const {
     std::map<std::string, std::string>::const_iterator it = headers.find(key);
     if (it != headers.end())
@@ -74,6 +78,12 @@ void Request::parseRequestLine(std::string buffer) {
     this->requestMethod = trimSpaces(tokens[0]);
     this->requestRessource = trimSpaces(tokens[1]);
     this->httpVersion = trimSpaces(tokens[2]);
+    if (this->requestRessource.find("?") != std::string::npos) {
+        this->queryString = this->requestRessource;
+        this->queryString.erase(0, this->queryString.find("?"));
+    } else {
+        this->queryString = "";
+    }
 }
 
 void Request::parseHeaders(std::string buffer) {
@@ -319,8 +329,8 @@ Response Request::handleRequest(DataConfig config) {
         return (response);
     }
     response = runHttpMethod(config);
-    // std::string green = "\033[1;32m";
-    // std::string reset = "\033[0m";
-    // std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
+    std::string green = "\033[1;32m";
+    std::string reset = "\033[0m";
+    std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
     return response;
 }

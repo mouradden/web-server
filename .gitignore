@@ -2,5 +2,6 @@
 /.github/
 DS_STORE
 *.o
+/parse/configfile.txt
 ./webserv
 /.vscode/
