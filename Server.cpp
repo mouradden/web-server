@@ -1,6 +1,10 @@
 #include "Server.hpp"
 #include "parse/DataConfig.hpp"
 
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+
 void Server::createSocket(DataConfig config)
 {
     std::vector<std::string> ports = config.getListen();
@@ -65,9 +69,11 @@ void Server::createServer(std::vector<DataConfig> config)
         {
             std::cout << "Failed to bind the socket.to port " << ntohs(serverAddress[i].sin_port) << ". Exiting..." << std::endl;
             close(this->getServerSocket(i));
-            exit(1);
+            this->serverSockets.erase(this->serverSockets.begin() + i);
+            return ;
+            // exit(1);
         }
-        std::cout << "[INFO] Server created : socket successfully binded with 127.0.0.1:" << ntohs(serverAddress[i].sin_port) << std::endl;
+        std::cout << "[INFO] Server created : socket successfully binded with " << config[i].getHost() << ":" << ntohs(serverAddress[i].sin_port) << std::endl;
     }
 }
 
@@ -79,7 +85,9 @@ void Server::putServerOnListening()
         if (listenResult == -1) {
             std::cerr << "Failed to listen on socket for port " << ntohs(serverAddress[i].sin_port) << ". Exiting..." << std::endl;
             close(getServerSocket(i));
-            exit(1);
+            this->serverSockets.erase(this->serverSockets.begin() + i);
+            return ;
+            // exit(1);
         }
         std::cout << "[INFO] Server listening on port " << ntohs(serverAddress[i].sin_port) << std::endl;
     }
@@ -112,4 +120,64 @@ std::map<int, DataConfig>& Server::getServers()
 void Server::setServer(int socketFd, DataConfig config)
 {
     this->servers[socketFd] = config;
+}
+
+int Server::sendResponse(int socket, Client& client)
+{
+    // std::cerr << "response = "  << RED << client.getResponseBuffer() << RESET << "\n";
+    size_t totalSize = client.getResponseBuffer().size();
+
+    if (client.getSentOffset() < totalSize) {
+        ssize_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), totalSize - client.getSentOffset(), 0);
+        if (sendResult == -1) {
+            std::cerr << "Error sending data\n";
+            return -1;
+        }
+        client.incremetOffset(sendResult);
+        std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << " / " << client.getResponseBuffer().size() << "\n";
+        return 1;
+    }
+    return 0;
+}
+
+void Server::parseChunkedRequest(std::string& requestBuffer) {
+    std::string buffer;
+    size_t pos = 0;
+
+    pos = requestBuffer.find("\r\n\r\n");
+    if (pos == std::string::npos) {
+        std::cerr << "Error: Couldn't find end of headers" << std::endl;
+        return;
+    }
+
+    buffer += requestBuffer.substr(0, pos + 4);
+    pos += 4; // Move past the end of headers
+
+    while (true) {
+        if (pos >= requestBuffer.size())
+            break;
+         if (!isdigit(requestBuffer[pos]) && !(requestBuffer[pos] <= 'f' && requestBuffer[pos] >= 'a'))
+            break ;
+        size_t chunkSizePos = requestBuffer.find("\r\n", pos);
+        if (chunkSizePos == std::string::npos) {
+            std::cerr << "Error: Couldn't find chunk size" << std::endl;
+            return;
+        }
+
+        int chunkSize;
+        std::istringstream(requestBuffer.substr(pos, chunkSizePos - pos)) >> std::hex >> chunkSize;
+        std::cout << "length = " << chunkSizePos - pos << " size = " <<  chunkSize << "\n";
+        if (chunkSize <= 0) {
+            // End of chunks
+            break;
+        }
+
+        buffer += requestBuffer.substr(chunkSizePos + 2, chunkSize);
+        pos = chunkSizePos + 2 + chunkSize; // 2 for CRLF, additional 2 for next CRLF
+        if (pos + 1 < requestBuffer.size() && requestBuffer[pos] == '\r' && requestBuffer[pos + 1] == '\n')
+        {
+            pos += 2;
+        }
+    }
+    requestBuffer = buffer;
 }

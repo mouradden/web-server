@@ -3,6 +3,7 @@
 
 #include "./parse/DataConfig.hpp"
 #include "./parse/ParseConfigFile.hpp"
+#include "./httpstuff/Client.hpp"
 
 #include <iostream>
 #include <sys/socket.h>
@@ -61,6 +62,9 @@ enum statusCodes {
     NOT_IMPLEMENTED = 501
 };
 
+
+class Client;
+
 class Server
 {
     private:
@@ -80,4 +84,7 @@ class Server
 
         std::map<int, DataConfig>& getServers();
         void setServer(int socketFd, DataConfig config);
+
+        int sendResponse(int socket, Client& client);
+        void parseChunkedRequest(std::string& requestBuffer);
 };

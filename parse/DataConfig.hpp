@@ -103,6 +103,8 @@ class DataConfig
         void    setLocationReturn(std::string returnStatus, std::string returnPath);
         
         void    errorData();
+
+        void    printDataConfig(); // just for printing the values of attributs
 };
 
 #endif

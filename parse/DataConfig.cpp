@@ -178,3 +178,37 @@ void    DataConfig::setLocationReturn(std::string returnStatus, std::string retu
     this->vectorLocation.back()._return.status = returnStatus;
     this->vectorLocation.back()._return.path = returnPath;
 }
+
+
+void DataConfig::printDataConfig() {
+    // Print listen
+    std::vector<std::string> listenVec = getListen();
+    std::cout << "Listen: ";
+    for (std::vector<std::string>::iterator it = listenVec.begin(); it != listenVec.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+
+    // Print serverName
+    std::vector<std::string> serverNameVec = getServerName();
+    std::cout << "ServerName: ";
+    for (std::vector<std::string>::iterator it = serverNameVec.begin(); it != serverNameVec.end(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+
+    // Print root
+    std::cout << "Root: " << getRoot() << std::endl;
+
+    // Print index
+    std::cout << "Index: " << getIndex() << std::endl;
+
+    // Print host
+    std::cout << "Host: " << getHost() << std::endl;
+
+    // Print autoIndex
+    std::cout << "AutoIndex: " << getAutoIndex() << std::endl;
+
+    // Print ErrorPage and Location vectors similarly
+    // ...
+}
