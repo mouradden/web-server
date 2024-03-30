@@ -32,6 +32,10 @@ std::string Request::getHttpVersion() const {
     return (this->httpVersion);
 }
 
+std::string Request::getQueryString() const {
+    return (this->queryString);
+}
+
 std::string Request::getHeader(std::string key) const {
     std::map<std::string, std::string>::const_iterator it = headers.find(key);
     if (it != headers.end())
@@ -75,6 +79,12 @@ void Request::parseRequestLine(std::string buffer) {
     this->requestMethod = trimSpaces(tokens[0]);
     this->requestRessource = trimSpaces(tokens[1]);
     this->httpVersion = trimSpaces(tokens[2]);
+    if (this->requestRessource.find("?") != std::string::npos) {
+        this->queryString = this->requestRessource;
+        this->queryString.erase(0, this->queryString.find("?"));
+    } else {
+        this->queryString = "";
+    }
 }
 
 void Request::parseHeaders(std::string buffer) {
@@ -106,6 +116,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     while ((pos = buffer.find(delim))!= std::string::npos) {
         if (buffer.compare(0, 4, delim, 0, 4) == 0) {
             values.push_back(delim);
+            break ;
         }
         line = buffer.substr(0, pos);
         values.push_back(line);
@@ -113,6 +124,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
     if (!buffer.empty()) {
         body = buffer;
+        std::cout << "body equals == " << body << std::endl;
     }
     for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
         if (i == 0) {
@@ -321,8 +333,8 @@ Response Request::handleRequest(DataConfig config) {
     //     return (response);
     // }
     response = runHttpMethod(config);
-    // std::string green = "\033[1;32m";
-    // std::string reset = "\033[0m";
-    // std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
+    std::string green = "\033[1;32m";
+    std::string reset = "\033[0m";
+    std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
     return response;
 }

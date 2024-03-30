@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <list>
@@ -133,7 +134,6 @@ int main(int ac, char **av, char **envp)
     {
         server.createSocket(config.getData()[i]);
     }
-    
     server.createServer(config.getData());
     server.putServerOnListening();
 
