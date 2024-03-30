@@ -116,6 +116,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     while ((pos = buffer.find(delim))!= std::string::npos) {
         if (buffer.compare(0, 4, delim, 0, 4) == 0) {
             values.push_back(delim);
+            break ;
         }
         line = buffer.substr(0, pos);
         values.push_back(line);
@@ -123,6 +124,7 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     }
     if (!buffer.empty()) {
         body = buffer;
+        std::cout << "body equals == " << body << std::endl;
     }
     for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
         if (i == 0) {
