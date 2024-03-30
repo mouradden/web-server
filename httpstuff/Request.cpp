@@ -114,8 +114,9 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     size_t pos = 0;
 
     while ((pos = buffer.find(delim))!= std::string::npos) {
-        if (buffer.compare(0, 4, delim, 0, 4) == 0) {
+        if (buffer.compare(0, 2, delim, 0, 2) == 0) {
             values.push_back(delim);
+            buffer.erase(0, delim.size());
             break ;
         }
         line = buffer.substr(0, pos);
@@ -333,8 +334,8 @@ Response Request::handleRequest(DataConfig config) {
     //     return (response);
     // }
     response = runHttpMethod(config);
-    std::string green = "\033[1;32m";
-    std::string reset = "\033[0m";
-    std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
+    // std::string green = "\033[1;32m";
+    // std::string reset = "\033[0m";
+    // std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
     return response;
 }
