@@ -80,21 +80,36 @@ Response& Response::operator=(const Response &ref) {
 void Response::buildResponse(unsigned int code) {
     std::ostringstream ss;
     setStatus(code);
+    ss << httpVersion << " " << code << " " << status << "\r\n" 
+        << "Content-Type: " << contentType << "\r\n" 
+        << "Content-Length: " << contentLength << "\r\n";
     if (headers.size() >= 1) {
-        ss << httpVersion << " " << code << " " << status << "\r\n" 
-            << "Content-Type: " << contentType << "\r\n" 
-            << "Content-Length: " << contentLength << "\r\n";
         for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
             ss << it->first << " " << it->second << "\r\n";
         }
-        ss << "\r\n" << body;
-    } else {
-        ss << httpVersion << " " << code << " " << status << "\r\n" 
-            << "Content-Type: " << contentType << "\r\n" 
-            << "Content-Length: " << contentLength << "\r\n\r\n" 
-            << body;
     }
+    ss << "\r\n" << body;
     responseEntity = ss.str();
+}
+
+void Response::buildResponse(DataConfig &config, std::string location, unsigned int code) {
+    std::ostringstream ss;
+    setStatus(code);
+    
+    location = "";
+    std::vector<ErrorPage> errorPages = config.getErrorPage();
+    std::ostringstream errorPageSs;
+    for (size_t i = 0; i < errorPages.size(); i++) {
+        if (atoi(errorPages[i].error.c_str()) == static_cast<int>(code)) {
+            errorPageSs << errorPages[i].page;
+            std::cout << "error page for code " << code << " has path of " << errorPageSs.str() << std::endl;
+        }
+    }
+    if (errorPageSs.str().size()) {
+        errorPageSs << config.getRoot() << "errorPages/" << code << ".html";
+        std::cout << errorPageSs.str();
+    }
+    std::string errorPagePath = ss.str();
 }
 
 int Response::sendResponse(int socket, Client client) {

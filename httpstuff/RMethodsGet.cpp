@@ -1,3 +1,4 @@
+#include "Request.hpp"
 #include "RequestMethods.hpp"
 #include "Response.hpp"
 #include <fstream>
@@ -33,8 +34,9 @@ void fillResponse(Response &response, std::ostringstream& ss, std::string filety
     response.buildResponse(OK);
 }
 
-void handleFolder(Response &response, std::vector<Location>::iterator &it, DataConfig &config, std::string path) {
+void handleFolder(Response &response, std::vector<Location>::iterator &it, DataConfig &config, Request &request) {
     std::ostringstream ss;
+    std::string path = request.getPath();
     if (it != config.getLocation().end()) {
         std::string filename = it->index.empty() ? config.getIndex() : it->index;
         std::ifstream file(path + filename);
@@ -43,7 +45,7 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
                 ss << generateHTML(path.c_str());
                 fillResponse(response, ss, ".html");
             } else {
-                response.buildResponse(FORBIDDEN);
+                response.buildResponse(config, request.getLocation(), FORBIDDEN);
             }
         } else {
             ss << file.rdbuf();
@@ -56,7 +58,7 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
                 ss << generateHTML(path.c_str());
                 fillResponse(response, ss, ".html");
             } else {
-                response.buildResponse(FORBIDDEN);
+                response.buildResponse(config, request.getLocation(), FORBIDDEN);
             }
         } else {
             ss << file.rdbuf();
@@ -65,26 +67,28 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
     }
 }
 
-void handleFile(Response &response, std::string path) {
+void handleFile(Response &response, Request &request) {
     std::ostringstream ss;
-    std::ifstream file(path);
+    std::ifstream file(request.getPath());
     if (!file.is_open()) {
         response.buildResponse(NOT_FOUND);
     } else {
         ss << file.rdbuf();
-        fillResponse(response, ss, path);
+        fillResponse(response, ss, request.getPath());
     }
 }
 
-Response buildResponseWithFile(DataConfig config, std::string path, std::string location) {
+Response buildResponseWithFile(DataConfig config, Request &request) {
     std::ostringstream ss;
     Response response;
-   
+
+    std::string path = request.getPath();
+    std::string location = request.getLocation();
     if (path.back() == '/') {
         std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
-        handleFolder(response, locationData, config, path);
+        handleFolder(response, locationData, config, request);
     } else {
-        handleFile(response, path);
+        handleFile(response, request);
     } 
     return (response);
 }
@@ -95,10 +99,10 @@ Response RequestMethod::GET(Request& request, DataConfig config) {
     std::string requestedRessource = request.getRequestRessource();
     if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // if request wants a directory
-        response = buildResponseWithFile(config, request.getPath(), request.getLocation());
+        response = buildResponseWithFile(config, request);
     } else {
         // specific ressource is requested instead of default
-        response = buildResponseWithFile(config, request.getPath(), request.getLocation());
+        response = buildResponseWithFile(config, request);
     }
     return (response);
 }

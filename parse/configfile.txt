@@ -6,9 +6,9 @@ server {
 
     listen 8081
     server_name example1.com
-    host 10.12.2.5
+    host 127.0.0.1:8081
     
-    root /Users/mdenguir/Desktop/sbs/
+    root /Users/nachab/Desktop/latestWebServ/
 
     index index.html
 
@@ -16,7 +16,7 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        root /Users/mdenguir/Desktop/carVilla/
+        root /Users/nachab/Desktop/atestWebServ/folder/
         index index.html
         methods GET POST
         cgi_extention   .py

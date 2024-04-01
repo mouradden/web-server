@@ -27,6 +27,7 @@ class Response {
     public:
         Response();
         void buildResponse(unsigned int code);
+        void buildResponse(DataConfig &config, std::string location, unsigned int code);
         int sendResponse(int socket, Client client);
 
         Response(const Response& ref);

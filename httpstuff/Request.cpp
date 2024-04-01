@@ -314,7 +314,7 @@ Response Request::handleRequest(DataConfig config) {
         if (errorCode >= 300 && errorCode <= 308) {
             response.setHeader("Location:", requestRessource + "/");
         }
-        response.buildResponse(errorCode);
+        response.buildResponse(config, this->location, errorCode);
         return (response);
     }
     // check if there is a redirection
@@ -323,7 +323,7 @@ Response Request::handleRequest(DataConfig config) {
         std::cout << "Auto index of location is " << it->location << " " << it->autoIndex << std::endl;
         if (!it->_return.path.empty() && !it->_return.status.empty()) {
             response.setHeader("Location:", it->_return.path);
-            response.buildResponse(atoi(it->_return.status.c_str()));
+            response.buildResponse(config, this->location, atoi(it->_return.status.c_str()));
             return (response);
         }
     }
