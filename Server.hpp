@@ -10,15 +10,16 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <fcntl.h>
 #include <dirent.h>
 #include <string>
 #include <cstring>
-
+#include <poll.h>
 #include <vector>
 #include <map>
+
+#define BUFFER_SIZE 4096
 
 enum statusCodes {
     // GET REQUEST SUCCESSFUL
@@ -79,9 +80,13 @@ class Server
 
         const std::vector<int>& getServerSockets();
         const int& getServerSocket(int index);
+        bool isServerSocket(int socket);
         void setServerSocket(int socket);
         const std::vector<sockaddr_in>& getServerAddress();
 
+        void    acceptNewConnections(std::vector<pollfd>& fds, std::vector<pollfd>& fdsTmp, std::map<int, Client>& Clients, size_t& i);
+        void    handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>& fdsTmp, std::map<int, Client>& Clients, size_t& i);
+        void    deliverResponseToClient(std::vector<pollfd>& fds, std::vector<pollfd>& fdsTmp, std::map<int, Client>& Clients, size_t& i);
         std::map<int, DataConfig>& getServers();
         void setServer(int socketFd, DataConfig config);
 

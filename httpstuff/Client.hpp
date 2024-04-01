@@ -20,6 +20,7 @@ class Client
         void incremetOffset(size_t n);
         void setOffset(size_t n);
         size_t getSentOffset();
+        bool served;
         std::string& getRequestBuffer();
         std::string& getResponseBuffer();
 
