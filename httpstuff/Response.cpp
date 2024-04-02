@@ -1,6 +1,8 @@
 #include "Response.hpp"
 #include "../Server.hpp"
+#include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 
 std::string Response::getMimeType(std::string fileExtension) {
     std::map<std::string, std::string> contentType;
@@ -80,20 +82,69 @@ Response& Response::operator=(const Response &ref) {
 void Response::buildResponse(unsigned int code) {
     std::ostringstream ss;
     setStatus(code);
+    ss << httpVersion << " " << code << " " << status << "\r\n" 
+        << "Content-Type: " << contentType << "\r\n" 
+        << "Content-Length: " << contentLength << "\r\n";
     if (headers.size() >= 1) {
-        ss << httpVersion << " " << code << " " << status << "\r\n" 
-            << "Content-Type: " << contentType << "\r\n" 
-            << "Content-Length: " << contentLength << "\r\n";
         for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
             ss << it->first << " " << it->second << "\r\n";
         }
-        ss << "\r\n" << body;
-    } else {
-        ss << httpVersion << " " << code << " " << status << "\r\n" 
-            << "Content-Type: " << contentType << "\r\n" 
-            << "Content-Length: " << contentLength << "\r\n\r\n" 
-            << body;
     }
+    ss << "\r\n" << body;
+    responseEntity = ss.str();
+}
+
+// build response overload for handling error pages
+void Response::buildResponse(DataConfig &config, std::string location, unsigned int code) {
+    std::ostringstream ss;
+    std::ostringstream errorPageSs;
+    setStatus(code);
+    
+    // first check if it's a location, if yes get the path of the error page if it exists
+    std::vector<Location>::iterator locationdata = config.getSpecificLocation(location);
+    std::vector<Location> locations = config.getLocation();
+    if (locationdata != locations.end()) {
+        for (size_t i = 0; i < locations.size(); i++) {
+            // if this location has an error page for the specific code
+        }
+    }
+    // if the location of the error page is not present, check if it's present in the config file
+    if (errorPageSs.str().size() == 0) {
+        std::vector<ErrorPage> errorPages = config.getErrorPage();
+        for (size_t i = 0; i < errorPages.size(); i++) {
+            if (atoi(errorPages[i].error.c_str()) == static_cast<int>(code)) {
+                std::cout << errorPages[i].page << std::endl;
+                struct stat statbuf;
+                if (stat(errorPages[i].page.c_str(), &statbuf) != 0) {
+                    errorPageSs << config.getRoot() << errorPages[i].page;
+                } else {
+                    errorPageSs << errorPages[i].page;
+                }
+            }
+        }
+    }
+    // if the error page path is not specified in a location nor the root, use the default one
+    struct stat statbuf;
+    if (errorPageSs.str().size() == 0 || stat(errorPageSs.str().c_str(), &statbuf) != 0) {
+        errorPageSs.str("");
+        errorPageSs << config.getRoot() << "errorPages/" << code << ".html"; 
+    }
+    std::cout << "path for error : " << code << " --> " << errorPageSs.str() << std::endl;
+    std::ifstream file(errorPageSs.str().c_str());
+    ss << file.rdbuf();
+    setContentType(".html");
+    setContentLength(ss.str().size());
+    setResponseBody(ss.str());
+    ss.str("");
+    ss << httpVersion << " " << code << " " << status << "\r\n" 
+        << "Content-Type: " << contentType << "\r\n" 
+        << "Content-Length: " << contentLength << "\r\n";
+    if (headers.size() >= 1) {
+        for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++) {
+            ss << it->first << " " << it->second << "\r\n";
+        }
+    }
+    ss << "\r\n" << body;
     responseEntity = ss.str();
 }
 

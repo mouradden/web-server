@@ -21,10 +21,15 @@ Response RequestMethod::DELETE(Request &request, DataConfig config) {
     std::string requestedRessource = request.getRequestRessource();
     if (requestedRessource[requestedRessource.size() - 1] == '/') {
         // check if location has cgi first
-        response.buildResponse(deleteDir(config, request.getPath()));
+        unsigned int code = deleteDir(config, request.getPath());
+        if (code != NO_CONTENT) {
+            response.buildResponse(config, request.getLocation(), code);
+        } else {
+            response.buildResponse(deleteDir(config, request.getPath()));
+        }
     } else {
         if (std::remove(request.getPath().c_str()) != 0) {
-            response.buildResponse(NOT_FOUND);
+            response.buildResponse(config, request.getLocation(), NOT_FOUND);
         } else {
             response.buildResponse(NO_CONTENT);
         }
