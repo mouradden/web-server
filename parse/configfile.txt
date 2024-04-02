@@ -49,7 +49,7 @@ server {
     error_page 404 /404.html
 
     location /image/ {
-        root /Users/mdenguir/Desktop/sbs/
+        root /Users/mdenguir/Desktop/location/
         index index.html
         methods GET POST
         cgi_extention   .py

@@ -64,10 +64,11 @@ void Server::createServer(std::vector<DataConfig> config)
  
     for (size_t i = 0; i < serverSockets.size(); i++)
     {
+        // std::cout << "BINDING before " << config[i].getHost() << ":" << ntohs(serverAddress[i].sin_port) << std::endl;
         int bindResult = bind(this->getServerSocket(i), reinterpret_cast<sockaddr*>(&(this->serverAddress[i])), sizeof(this->serverAddress[i]));
         if (bindResult == -1)
         {
-            std::cout << "Failed to bind the socket.to port " << ntohs(serverAddress[i].sin_port) << ". Exiting..." << std::endl;
+            std::cout << "Failed to bind the socket to " << config[i].getHost() << ":" << ntohs(serverAddress[i].sin_port) << ". Ignoring it..." << std::endl;
             close(this->getServerSocket(i));
             this->serverSockets.erase(this->serverSockets.begin() + i);
             return ;
@@ -97,6 +98,15 @@ const std::vector<int>& Server::getServerSockets()
 {
     return serverSockets;
 }
+bool Server::isServerSocket(int socket)
+{
+    std::vector<int>::iterator it = std::find(serverSockets.begin(), serverSockets.end(), socket);
+    if (it != serverSockets.end())
+    {
+        return true;
+    }
+    return false;
+}
 const std::vector<sockaddr_in>& Server::getServerAddress()
 {
     return serverAddress;
@@ -120,6 +130,127 @@ std::map<int, DataConfig>& Server::getServers()
 void Server::setServer(int socketFd, DataConfig config)
 {
     this->servers[socketFd] = config;
+}
+
+void    Server::acceptNewConnections(std::vector<pollfd>& fds, std::vector<pollfd>& fdsTmp, std::map<int, Client>& Clients, size_t& i)
+{
+    if (fdsTmp[i].revents & POLLIN)
+    {
+        if (this->isServerSocket(fdsTmp[i].fd) == true)
+        {
+            int clientSocket = accept(fdsTmp[i].fd, NULL, NULL);
+            if (clientSocket == -1)
+            {
+                std::cerr << "Error accepting client connection\n";
+                close(fdsTmp[i].fd);
+            }
+            else
+            {
+                if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
+                    std::cerr << "Error setting socket to non-blocking\n";
+                    return ;
+                }
+                
+                std::cout << "New client connected, socket: " << clientSocket << "\n";
+                Clients.insert(std::make_pair(clientSocket, Client()));
+                pollfd pfd;
+                pfd.fd = clientSocket;
+                pfd.events = POLLIN | POLLOUT;
+                fds.push_back(pfd);
+                this->setServer(clientSocket, this->getServers()[fdsTmp[i].fd]);
+            }
+        }
+    }
+}
+
+
+void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>& fdsTmp, std::map<int, Client>& Clients, size_t& i)
+{
+    if ((fdsTmp[i].revents & POLLIN) && this->isServerSocket(fdsTmp[i].fd) == false)
+    {
+        int clientSocket = fdsTmp[i].fd;
+        char buffer[BUFFER_SIZE];
+        memset(buffer, 0, BUFFER_SIZE);
+        ssize_t bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
+        if (bytesRead > 0)
+        {
+            DataConfig configData = this->getServers()[clientSocket];
+            Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
+            std::cout << "request buffer : |" << GREEN << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+            if (Clients[clientSocket].getRequestBuffer().find("Transfer-Encoding: chunked") != std::string::npos)
+            {
+                if (Clients[clientSocket].getRequestBuffer().find("\r\n0") != std::string::npos)
+                {
+                    this->parseChunkedRequest(Clients[clientSocket].getRequestBuffer());
+                    Request req(Clients[clientSocket].getRequestBuffer());
+                    Response response = req.handleRequest(configData);
+                    Clients[clientSocket].setResponse(response.getResponseEntity());
+                }
+            }
+            else
+            {
+                if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") != std::string::npos)
+                {
+                    
+                    Request req(Clients[clientSocket].getRequestBuffer());
+                    Response response = req.handleRequest(configData);
+                    Clients[clientSocket].setResponse(response.getResponseEntity());
+                    Clients[clientSocket].served = 0;
+                }
+            }
+        } 
+        else if (bytesRead == 0)
+        {
+            std::cout << "Client disconnected, socket: " << clientSocket << "\n";
+            close(clientSocket);
+            for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end();) {
+                if (it->fd == clientSocket)
+                    it = fds.erase(it);
+                else
+                    ++it;
+            }
+            Clients.erase(clientSocket);
+        }
+        else
+        {
+            close(clientSocket);
+            for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); )
+            {
+                if (it->fd == clientSocket)
+                {
+                    it = fds.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            Clients.erase(clientSocket);
+        }
+    }
+}
+
+void    Server::deliverResponseToClient(std::vector<pollfd>& fds, std::vector<pollfd>& fdsTmp, std::map<int, Client>& Clients, size_t& i)
+{
+    if ((fdsTmp[i].revents & POLLOUT) && this->isServerSocket(fdsTmp[i].fd) == false)
+        {
+        int clientSocket = fdsTmp[i].fd;
+        if (this->sendResponse(clientSocket, Clients[clientSocket]) == 0 && !Clients[clientSocket].served)
+        {
+            std::cout << "Response sent for socket: " << clientSocket << "\n";
+            close(clientSocket);
+            for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end();) {
+                if (it->fd == clientSocket)
+                {
+                    it = fds.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            Clients[clientSocket].getRequestBuffer().clear();
+            Clients[clientSocket].getResponseBuffer().clear();
+            Clients[clientSocket].setOffset(0);
+            Clients[clientSocket].served = 1;
+        }
+    }
 }
 
 int Server::sendResponse(int socket, Client& client)
@@ -153,7 +284,8 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
     buffer += requestBuffer.substr(0, pos + 4);
     pos += 4; // Move past the end of headers
 
-    while (true) {
+    while (true)
+    {
         if (pos >= requestBuffer.size())
             break;
          if (!isdigit(requestBuffer[pos]) && !(requestBuffer[pos] <= 'f' && requestBuffer[pos] >= 'a'))
@@ -181,3 +313,4 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
     }
     requestBuffer = buffer;
 }
+
