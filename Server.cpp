@@ -15,11 +15,13 @@ void Server::createSocket(DataConfig config)
         if (socketFd == -1)
         {
             std::cout << "Failed to create socket. Exiting..." << std::endl;
+            close(socketFd);
             exit(1);
         }
         if (fcntl(socketFd, F_SETFL, O_NONBLOCK) == -1)
         {
             std::cerr << "Error setting socket to non-blocking\n";
+            close(socketFd);
             return ;
         }
         int enable = 1;
@@ -88,7 +90,6 @@ void Server::putServerOnListening()
             close(getServerSocket(i));
             this->serverSockets.erase(this->serverSockets.begin() + i);
             return ;
-            // exit(1);
         }
         std::cout << "[INFO] Server listening on port " << ntohs(serverAddress[i].sin_port) << std::endl;
     }
@@ -148,6 +149,7 @@ void    Server::acceptNewConnections(std::vector<pollfd>& fds, std::vector<pollf
             {
                 if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
                     std::cerr << "Error setting socket to non-blocking\n";
+                    close(clientSocket);
                     return ;
                 }
                 
@@ -176,12 +178,14 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
         {
             DataConfig configData = this->getServers()[clientSocket];
             Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
-            std::cout << "request buffer : |" << GREEN << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+            // std::cout << RED << "request size = " << Clients[clientSocket].getRequestBuffer().size() << RESET << "\n";
+            // std::cout << "request buffer : |" << GREEN << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
             if (Clients[clientSocket].getRequestBuffer().find("Transfer-Encoding: chunked") != std::string::npos)
             {
                 if (Clients[clientSocket].getRequestBuffer().find("\r\n0") != std::string::npos)
                 {
                     this->parseChunkedRequest(Clients[clientSocket].getRequestBuffer());
+            // std::cout << "request buffer : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
                     Request req(Clients[clientSocket].getRequestBuffer());
                     Response response = req.handleRequest(configData);
                     Clients[clientSocket].setResponse(response.getResponseEntity());
@@ -189,13 +193,38 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
             }
             else
             {
-                if (Clients[clientSocket].getRequestBuffer().find("\r\n\r\n") != std::string::npos)
+                std::string request = Clients[clientSocket].getRequestBuffer();
+                size_t headerEnd = request.find("\r\n\r\n");
+                if (headerEnd != std::string::npos)
                 {
-                    
-                    Request req(Clients[clientSocket].getRequestBuffer());
-                    Response response = req.handleRequest(configData);
-                    Clients[clientSocket].setResponse(response.getResponseEntity());
-                    Clients[clientSocket].served = 0;
+                    std::string headers = request.substr(0, headerEnd);
+                    size_t contentLengthPos = headers.find("Content-Length: ");
+                    if (contentLengthPos != std::string::npos)
+                    {
+                        size_t contentLengthEnd = headers.find("\r\n", contentLengthPos);
+                        std::string contentLengthStr = headers.substr(contentLengthPos + 16, contentLengthEnd - (contentLengthPos + 16));
+                        size_t contentLength = atoi(contentLengthStr.c_str());
+                        std::string body = request.substr(headerEnd + 4);
+                        if (body.size() >= contentLength)
+                        {
+                            // We've received the entire request
+                            // std::cout << "request final : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+                            // std::cout << "request size final : |" << RED << Clients[clientSocket].getRequestBuffer().size() << RESET << "|\n";
+                            Request req(Clients[clientSocket].getRequestBuffer());
+                            Response response = req.handleRequest(configData);
+                            Clients[clientSocket].setResponse(response.getResponseEntity());
+                            Clients[clientSocket].served = 0;
+
+                        }
+                    }
+                    else
+                    {
+                        // std::cout << "request buffer : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+                        Request req(Clients[clientSocket].getRequestBuffer());
+                        Response response = req.handleRequest(configData);
+                        Clients[clientSocket].setResponse(response.getResponseEntity());
+                        Clients[clientSocket].served = 0;
+                    }
                 }
             }
         } 
@@ -262,6 +291,7 @@ int Server::sendResponse(int socket, Client& client)
         ssize_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), totalSize - client.getSentOffset(), 0);
         if (sendResult == -1) {
             std::cerr << "Error sending data\n";
+            close(socket);
             return -1;
         }
         client.incremetOffset(sendResult);
@@ -298,7 +328,7 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
 
         int chunkSize;
         std::istringstream(requestBuffer.substr(pos, chunkSizePos - pos)) >> std::hex >> chunkSize;
-        std::cout << "length = " << chunkSizePos - pos << " size = " <<  chunkSize << "\n";
+        // std::cout << "length = " << chunkSizePos - pos << " size = " <<  chunkSize << "\n";
         if (chunkSize <= 0) {
             // End of chunks
             break;
