@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/03/09 22:18:17 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/03 02:11:32 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,6 +300,42 @@ void    ParseConfigFile::checkValidAutoIndex(std::vector<std::string> splitVecto
         errorParse();
     }
 }
+void    ParseConfigFile::checkValidLocationUpload(std::vector<std::string> splitVector)
+{
+    if(splitVector.size() == 2)
+    {
+        int fd = open(splitVector[1].c_str(), O_RDONLY);
+        if(fd == -1)
+            errorParse();
+        close(fd);
+        this->data.back().setLocationUpload(splitVector[1]);
+    }
+    else
+    {
+        std::cout << "i check upload " << std::endl;
+        errorParse();
+    }
+}
+
+void    ParseConfigFile::checkValidLocationCgiTime(std::vector<std::string> splitVector)
+{
+    if(splitVector.size() == 2)
+    {
+        int i = 0;
+        while (splitVector[1][i])
+        {
+            if(std::isdigit(splitVector[1][i]) == 0)
+                errorParse();
+            i++;
+        }
+        this->data.back().setLocationCgiTime(std::atoi(splitVector[1].c_str()));
+    }
+    else
+    {
+        std::cout << "i check autoIndex " << std::endl;
+        errorParse();
+    }
+}
 
 void    ParseConfigFile::parser(std::string nameFile)
 {
@@ -374,6 +410,12 @@ void    ParseConfigFile::parser(std::string nameFile)
                     else if(splitVector[0] == "cgi_bin" && this->findBraciteRight == 1
                         && this->findBraciteRightLocation == 1)
                         checkValidLocationCgiBin(splitVector);
+                    else if(splitVector[0] == "cgi_time" && this->findBraciteRight == 1
+                        && this->findBraciteRightLocation == 1)
+                        checkValidLocationCgiTime(splitVector);
+                    else if(splitVector[0] == "upload" && this->findBraciteRight == 1
+                        && this->findBraciteRightLocation == 1)
+                        checkValidLocationUpload(splitVector);
                     else if(splitVector[0] == "return" && this->findBraciteRight == 1
                         && this->findBraciteRightLocation == 1){
                            

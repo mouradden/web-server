@@ -15,6 +15,8 @@
 
 #include <iostream>
 #include <vector>
+#include <fcntl.h>
+#include <unistd.h>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -50,6 +52,8 @@ class ParseConfigFile
         void    checkValidServerLeftBrackite(std::vector<std::string> splitVector);
         void    checkValidHost(std::vector<std::string> splitVector);
         void    checkValidAutoIndex(std::vector<std::string> splitVector);
+        void    checkValidLocationCgiTime(std::vector<std::string> splitVector);
+        void    checkValidLocationUpload(std::vector<std::string> splitVector);
         void    errorParse();
     public:
         ParseConfigFile();
