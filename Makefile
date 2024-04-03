@@ -1,4 +1,4 @@
-SRCS = main.cpp Server.cpp parse/DataConfig.cpp parse/ParseConfigFile.cpp httpstuff/Request.cpp httpstuff/Response.cpp httpstuff/RMethodsGet.cpp httpstuff/RMethodsDelete.cpp httpstuff/Client.cpp 
+SRCS = main.cpp Server.cpp parse/DataConfig.cpp parse/ParseConfigFile.cpp httpstuff/Request.cpp httpstuff/Response.cpp httpstuff/RMethodsGet.cpp httpstuff/RMethodsDelete.cpp httpstuff/Client.cpp httpstuff/RMethodsPost.cpp cgi/Cgi.cpp cgi/CgiOutput.cpp 
 
 OBJS = $(SRCS:.cpp=.o)
 

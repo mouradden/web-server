@@ -315,15 +315,9 @@ Response Request::runHttpMethod(DataConfig config) {
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 
-    else if (requestMethod.compare("POST") == 0) {
-        checkWichServer();
-        // std::cout <<"host " << this->host << "\n";
-
-        // std::cout << this->requestEntity << "\n";
-        // std::cout << "getLocation  " << config.getLocation()[1].alias << "\n";
-        // std::cout << this->httpVersion << "\n";
-        
-        // response = RequestMethod::POST(*this, config);
+    else if (requestMethod.compare("POST") == 0)
+    {
+        response = RequestMethod::POST(*this, config);
     }
     else if (requestMethod.compare("DELETE") == 0) {
         response = RequestMethod::DELETE(*this, config);

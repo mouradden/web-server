@@ -14,7 +14,7 @@
 
 DataConfig::DataConfig()
 {
-    this->autoIndex = 1;
+    this->autoIndex = 0;
 }
 
 void    DataConfig::errorData()
@@ -211,4 +211,13 @@ void DataConfig::printDataConfig() {
 
     // Print ErrorPage and Location vectors similarly
     // ...
+}
+void    DataConfig::setLocationUpload(std::string upload)
+{
+    this->vectorLocation.back().upload = upload;
+}
+
+void    DataConfig::setLocationCgiTime(int cgiTime)
+{
+    this->vectorLocation.back().cgiTime = cgiTime;
 }

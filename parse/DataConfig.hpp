@@ -44,6 +44,7 @@ struct Methods
         _delete = 0;
     }
 };
+
 struct Location
 {
     std::string location;
@@ -54,11 +55,19 @@ struct Location
     int autoIndex;
     std::string cgiExtension;
     std::string cgiBin;
+    int     cgiTime;
     Return _return;
+    std::string upload;
     
-    Location()
-    {
-        autoIndex = 1;
+    Location(){
+        autoIndex = 0;
+        cgiExtension = "";
+        upload = "";
+        location = "";
+        alias = "";
+        root = "";
+        index = "";
+        cgiTime = 3;
     }
 };
 
@@ -101,7 +110,8 @@ class DataConfig
         void    setLocationCgiExtention(std::string cgiExtention);
         void    setLocationCgiBin(std::string cgiBin);
         void    setLocationReturn(std::string returnStatus, std::string returnPath);
-        
+        void    setLocationUpload(std::string upload);
+        void    setLocationCgiTime(int cgiTime);
         void    errorData();
 
         void    printDataConfig(); // just for printing the values of attributs
