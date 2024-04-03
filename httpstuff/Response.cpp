@@ -130,8 +130,13 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
         errorPageSs.str("");
         errorPageSs << config.getRoot() << "errorPages/" << code << ".html"; 
     }
+
     std::cout << "path for error : " << code << " --> " << errorPageSs.str() << std::endl;
     std::ifstream file(errorPageSs.str().c_str());
+    if (!file) {
+        buildResponse(code);
+        return ;
+    }
     ss << file.rdbuf();
     setContentType(".html");
     setContentLength(ss.str().size());
@@ -267,8 +272,14 @@ void Response::setStatus(unsigned int code) {
         case REQUEST_URI_EXCEEDED:
             status =  "URI Too Long";
             break ;
+        case INTERNAL_SERVER_ERROR:
+            status =  "Internal Server Error";
+            break ;
         case NOT_IMPLEMENTED:
             status =  "Not Implemented";
+            break ;
+        case GATEWAY_TIMEOUT:
+            status =  "Gateway Timeout";
             break ;
         default:
             status = "";

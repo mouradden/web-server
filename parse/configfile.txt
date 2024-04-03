@@ -8,7 +8,7 @@ server {
     server_name example1.com
     host 127.0.0.1
     
-    root /Users/ahajji/Desktop/morad/
+    root /Users/nachab/Desktop/latestWebServ/
 
     index index.html
 
@@ -17,12 +17,12 @@ server {
 
     location /image/ {
 
-        root /Users/ahajji/Desktop/morad/
+        root /Users/nachab/Desktop/latestWebServ/
         index index.php
         methods GET POST
         cgi_extention   .py
         cgi_bin      dd
-        upload     /Users/ahajji/Desktop/newweb/
+        upload     /Users/nachab/Desktop/latestWebServ/
         cgi_time    2
     }
 
