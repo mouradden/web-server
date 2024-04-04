@@ -18,11 +18,11 @@ server {
     location /image/ {
 
         root /Users/ahajji/Desktop/morad/
-        index index.php
+        index index.html
         methods GET POST
         cgi_extention   .py
         cgi_bin      dd
-        upload     /Users/ahajji/Desktop/newweb/
+        upload     /Users/ahajji/Desktop/morad/
         cgi_time    2
     }
 
