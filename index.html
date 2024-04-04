@@ -12,11 +12,12 @@
         <input type="submit" value="Send GET Request">
     </form>
       
-    <form action="/" method="post">
+    <!-- <form action="/image/index.php" method="post" enctype="multipart/form-data"> -->
+    <form action="/image/index.php" method="post">
         <input type="text" name="name" id="">
         <input type="text" name="email" id= "">
-        <input type="file">
-      <input type="submit" value="Send POST Request">
+        <input name="file" type="file">
+        <input type="submit" value="Send POST Request">
     </form>
 </body>
 </html>

@@ -208,7 +208,7 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
                         if (body.size() >= contentLength)
                         {
                             // We've received the entire request
-                            // std::cout << "request final : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
+                            std::cout << "request final : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
                             // std::cout << "request size final : |" << RED << Clients[clientSocket].getRequestBuffer().size() << RESET << "|\n";
                             Request req(Clients[clientSocket].getRequestBuffer());
                             Response response = req.handleRequest(configData);

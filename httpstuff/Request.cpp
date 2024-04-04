@@ -31,7 +31,9 @@ std::string Request::getRequestRessource() const {
 std::string Request::getHttpVersion() const {
     return (this->httpVersion);
 }
-
+std::string Request::getQueryString() const {
+    return this->queryString;
+}
 std::string Request::getHeader(std::string key) const {
     std::map<std::string, std::string>::const_iterator it = headers.find(key);
     if (it != headers.end())
@@ -310,9 +312,10 @@ void    Request::checkWichServer()
     parseHostPort();
     
 }
+
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
-    std::cout << "body////   "<< this->body << "/////"<< std::endl;
+    std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 

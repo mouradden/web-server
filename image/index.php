@@ -1,7 +1,7 @@
 <?php 
-    header("Content-Length: 500");
+    // header("Content-Length: 1000");
     // header("Location: /imgs/");
-    // while(1);
+    while(1);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,7 +11,28 @@
     <title>Document</title>
 </head>
 <body>
+    <h1><?php echo "hello word"?></h1>
     <h1><?php echo $_POST['name']?></h1>
     <h1><?php echo $_POST['email']?></h1>
+    <h1><?php echo $_GET['name']?></h1>
+    <h1><?php echo $_GET['email']?></h1>
+    <?php
+        // if(isset($_FILES['file'])){
+        //     echo "<h1>File name: " . $_FILES['file']['name'] . "</h1>";
+        //     $fileContent = $_FILES['file']['tmp_name'];
+        //     echo "<pre>$fileContent</pre>";
+          
+        //     $uploadDirectory = "/Users/ahajji/Desktop/morad/";
+
+          
+        //     $newFilePath = $uploadDirectory . basename($_FILES['file']['name']);
+
+        //     if(move_uploaded_file($_FILES['file']['tmp_name'], $newFilePath)) {
+        //         echo "The file has been uploaded successfully.";
+        //     } else {
+        //         echo "There was an error uploading the file.";
+        //     }
+        // }
+    ?>
 </body>
 </html>

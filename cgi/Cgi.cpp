@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 17:48:53 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/03 17:35:15 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/04 19:51:50 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,16 @@ CgiOutput Cgi::CallCgi(std::string path, Request& request, std::string check, Da
     std::string outputFile = "/Users/ahajji/Desktop/morad/tmp/file.txt";  
 
     std::string SERVER_PROTOCOL = "SERVER_PROTOCOL=" + request.getHttpVersion();
-    std::string CONTENT_TYPE = "CONTENT_TYPE=application/x-www-form-urlencoded";
+    std::string CONTENT_TYPE = "CONTENT_TYPE=" + request.getHeader("Content-Type");
     std::stringstream leng;
     leng << request.getBody().length();
-    // std::string CONTENT_LENGTH = "CONTENT_LENGTH=" + leng.str();
-    std::string CONTENT_LENGTH = "CONTENT_LENGTH=300";
-    // std::string Location = "Location=http://www.example.com";
+    std::string CONTENT_LENGTH = "CONTENT_LENGTH=" + leng.str();
+    std::cout << request.getBody().length() << "       lennnnnnnn\n\n\n\n";
     std::string Status = "Status=200 OK";
     std::string REDIRECT_STATUS = "REDIRECT_STATUS=200";
     std::string REQUEST_METHOD = "REQUEST_METHOD="+request.getRequestMethod();
+    std::string QUERY_STRING = "QUERY_STRING=" + request.getQueryString();
+    // std::string   QUERY_STRING = "QUERY_STRING=name=John&email=Doe";
     std::string DOCUMENT_ROOT;
     std::string SCRIPT_FILENAME;
     if(check == "/")
@@ -61,12 +62,12 @@ CgiOutput Cgi::CallCgi(std::string path, Request& request, std::string check, Da
     SERVER_PROTOCOL,
     CONTENT_TYPE,
     CONTENT_LENGTH,
-    // Location,
     Status,
     REDIRECT_STATUS,
     REQUEST_METHOD,
     DOCUMENT_ROOT,
-    SCRIPT_FILENAME
+    SCRIPT_FILENAME,
+    QUERY_STRING
 };
 
 int numHeaders = 10;
@@ -76,22 +77,10 @@ for (i = 0; i < sizeof(headers)/sizeof(headers[0]); ++i) {
     arr[i] = new char[headers[i].size() + 1];
     std::strcpy(arr[i], headers[i].c_str());
 }
-
-std::string query;
+arr[i] = NULL;
 
 std::time_t start = 0;
 start = std::time(nullptr);
-std::cout << "Current time in seconds since epoch: " << start << std::endl;
-if(request.getBody() == "GET")
-{  
-    query = "name=John&email=Doe";
-    std::string queryString = "QUERY_STRING=" + query;
-    arr[i] = new char[queryString.size() + 1];
-    std::strcpy(arr[i], queryString.c_str());
-    ++i;
-}
-
-arr[i] = NULL;
     pid_t pid = fork();
     if (pid == -1) {
         perror("fork");
@@ -111,7 +100,7 @@ out = dup(STDOUT_FILENO);
         }
 
     // Write the POST data to the write end of the pipe
-    std::string postdata = "name=karim&email=salam"; // replace this with your actual POST data
+    std::string postdata = request.getBody(); // replace this with your actual POST data
     write(pipefd[1], postdata.c_str(), postdata.size());
 
     // Close the write end of th e pipe
@@ -180,6 +169,7 @@ out = dup(STDOUT_FILENO);
         { 
             body = result;
         }
+        std::cout << "this is my result " << result << std::endl;
         std::cout << result << "\n";
         std::cout << "just test ok " << header_s.begin()->first << std::endl;
         std::map<std::string, std::string>::iterator it = header_s.find("Content-Length");
