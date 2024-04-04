@@ -7,16 +7,22 @@ server {
     listen 8081
     server_name example1.com
     host  127.0.0.1
+<<<<<<< HEAD
     
 
     root /Users/ahajji/Desktop/morad/
+=======
+
+    root /Users/nachab/Desktop/latestWebServ/
+>>>>>>> b1accaa1e9be097c9907ff533ecd43057ae63f9e
 
     index index.html
 
     # Configure error pages
-    error_page 404 /404.html
+    error_page 404 /cgi/
 
     location /image/ {
+<<<<<<< HEAD
         root /Users/ahajji/Desktop/morad/
         index index.php
         methods GET POST
@@ -25,6 +31,9 @@ server {
     }
     location / {
         root /Users/ahajji/Desktop/morad/
+=======
+        root /Users/nachab/Desktop/latestWebServ/
+>>>>>>> b1accaa1e9be097c9907ff533ecd43057ae63f9e
         index index.html
         methods GET POST
         cgi_extention   .py
