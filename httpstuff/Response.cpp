@@ -9,7 +9,7 @@ std::string Response::getMimeType(std::string fileExtension) {
     contentType.insert(std::make_pair("txt", "text/plain"));
     contentType.insert(std::make_pair("html", "text/html"));
     contentType.insert(std::make_pair("htm", "text/html"));
-    contentType.insert(std::make_pair("php", "application/x-httpd-php"));
+    contentType.insert(std::make_pair("php", "text/html"));
     contentType.insert(std::make_pair("css", "text/css"));
     contentType.insert(std::make_pair("js", "text/javascript"));
     contentType.insert(std::make_pair("json", "application/json"));

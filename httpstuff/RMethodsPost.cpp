@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/03 00:00:05 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/04 02:46:42 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/04 22:54:31 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,6 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
         if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->cgiExtension != "")
         {
             data = Cgi::CallCgi(path, request, "/", config);
-            std::cout <<"hiii    " << data.getBody() << "hiiiiiiiiii am her \n\n\n\n\n\n\n\n";
             if(data.getCgiError() == "error")
                 response.buildResponse(500);
             else if(data.getCgiError() == "time out")
@@ -144,7 +143,7 @@ void returnSpecificContentFile(std::string path, DataConfig config,Response& res
         if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->cgiExtension != "")
         {
             data = Cgi::CallCgi(path, request, "/", config);
-            std::cout <<"hiii    " << data.getBody() << "hiiiiiiiiii am her \n\n\n\n\n\n\n\n";
+            // std::cout <<"hiii    " << data.getBody() << "hiiiiiiiiii am her \n\n\n\n\n\n\n\n";
             if(data.getCgiError() == "error")
                 response.buildResponse(500);
             else if(data.getCgiError() == "time out")

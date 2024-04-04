@@ -64,6 +64,7 @@ struct Location
     Return _return;
     std::string upload;
     ErrorPage errorPage;
+    long long maxSize;
     Location(){
         autoIndex = 0;
         cgiExtension = "";
@@ -118,6 +119,7 @@ class DataConfig
         void    setLocationUpload(std::string upload);
         void    setLocationErrorPage(std::string error, std::string page);
         void    setLocationCgiTime(int cgiTime);
+        void    setLocationMaxSize(long long maxSize);
         void    errorData();
 
         void    printDataConfig(); // just for printing the values of attributs
