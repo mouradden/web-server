@@ -38,8 +38,8 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
     std::ostringstream ss;
     std::string path = request.getPath();
     if (it != config.getLocation().end()) {
-        std::string filename = it->index.empty() ? config.getIndex() : it->index;
-        std::ifstream file(path + filename);
+        std::string indexFile = it->index.empty() ? config.getIndex() : it->index;
+        std::ifstream file(path + indexFile);
         if (!file.is_open()) {
             if (it->autoIndex) {
                 ss << generateHTML(path.c_str());
@@ -49,7 +49,7 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
             }
         } else {
             ss << file.rdbuf();
-            fillResponse(response, ss, it->index);
+            fillResponse(response, ss, indexFile);
         }
     } else if (it == config.getLocation().end()) {
         std::ifstream file(path + config.getIndex());

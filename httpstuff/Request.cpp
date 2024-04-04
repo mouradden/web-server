@@ -31,7 +31,9 @@ std::string Request::getRequestRessource() const {
 std::string Request::getHttpVersion() const {
     return (this->httpVersion);
 }
-
+std::string Request::getQueryString() const {
+    return this->queryString;
+}
 std::string Request::getHeader(std::string key) const {
     std::map<std::string, std::string>::const_iterator it = headers.find(key);
     if (it != headers.end())
@@ -310,8 +312,10 @@ void    Request::checkWichServer()
     parseHostPort();
     
 }
+
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
+    std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 
@@ -338,7 +342,7 @@ Response Request::handleRequest(DataConfig config) {
     // check if there is a redirection
     std::vector<Location>::iterator it = config.getSpecificLocation(location);
     if (it != config.getLocation().end()) {
-        std::cout << "Auto index of location is " << it->location << " " << it->autoIndex << std::endl;
+        // std::cout << "Auto index of location is " << it->location << " " << it->autoIndex << std::endl;
         if (!it->_return.path.empty() && !it->_return.status.empty()) {
             response.setHeader("Location:", it->_return.path);
             response.buildResponse(atoi(it->_return.status.c_str()));
@@ -346,11 +350,11 @@ Response Request::handleRequest(DataConfig config) {
         }
     }
     // check if the method is allowed on the requested ressource
-    // if (methodAllowed(config) == 0) {
-    //     std::cout << "method not allowed\n";
-    //     response.buildResponse(METHOD_NOT_ALLOWED);
-    //     return (response);
-    // }
+    if (methodAllowed(config) == 0) {
+        // std::cout << "method not allowed\n";
+        response.buildResponse(config, this->location, METHOD_NOT_ALLOWED);
+        return (response);
+    }
     response = runHttpMethod(config);
     // std::string green = "\033[1;32m";
     // std::string reset = "\033[0m";

@@ -9,7 +9,7 @@ std::string Response::getMimeType(std::string fileExtension) {
     contentType.insert(std::make_pair("txt", "text/plain"));
     contentType.insert(std::make_pair("html", "text/html"));
     contentType.insert(std::make_pair("htm", "text/html"));
-    contentType.insert(std::make_pair("php", "text/html"));
+    contentType.insert(std::make_pair("php", "application/x-httpd-php"));
     contentType.insert(std::make_pair("css", "text/css"));
     contentType.insert(std::make_pair("js", "text/javascript"));
     contentType.insert(std::make_pair("json", "application/json"));
@@ -31,6 +31,25 @@ std::string Response::getMimeType(std::string fileExtension) {
     contentType.insert(std::make_pair("midi", "audio/midi"));
     contentType.insert(std::make_pair("wma", "audio/x-ms-wma"));
     contentType.insert(std::make_pair("ra", "audio/x-pn-realaudio"));
+    
+    // other mime types
+    contentType.insert(std::make_pair("pdf", "application/pdf"));
+    contentType.insert(std::make_pair("xml", "application/xml"));
+    contentType.insert(std::make_pair("rss", "application/rss+xml"));
+    contentType.insert(std::make_pair("atom", "application/atom+xml"));
+    contentType.insert(std::make_pair("zip", "application/zip"));
+    contentType.insert(std::make_pair("gzip", "application/gzip"));
+    contentType.insert(std::make_pair("tar", "application/x-tar"));
+    contentType.insert(std::make_pair("xls", "application/vnd.ms-excel"));
+    contentType.insert(std::make_pair("doc", "application/msword"));
+    contentType.insert(std::make_pair("ppt", "application/vnd.ms-powerpoint"));
+    contentType.insert(std::make_pair("odt", "application/vnd.oasis.opendocument.text"));
+    contentType.insert(std::make_pair("odp", "application/vnd.oasis.opendocument.presentation"));
+    contentType.insert(std::make_pair("ods", "application/vnd.oasis.opendocument.spreadsheet"));
+    contentType.insert(std::make_pair("markdown", "text/markdown"));
+    contentType.insert(std::make_pair("csv", "text/csv"));
+    contentType.insert(std::make_pair("yaml", "application/x-yaml"));
+    contentType.insert(std::make_pair("rdf", "application/rdf+xml"));
     std::map<std::string, std::string>::iterator it = contentType.find(fileExtension);
     if (it != contentType.end()) {
         return (it->second);
@@ -116,7 +135,7 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
             if (atoi(errorPages[i].error.c_str()) == static_cast<int>(code)) {
                 std::cout << errorPages[i].page << std::endl;
                 struct stat statbuf;
-                if (stat(errorPages[i].page.c_str(), &statbuf) != 0) {
+                if (stat(errorPages[i].page.c_str(), &statbuf) != 0 || S_ISDIR(statbuf.st_mode)) {
                     errorPageSs << config.getRoot() << errorPages[i].page;
                 } else {
                     errorPageSs << errorPages[i].page;
@@ -126,12 +145,17 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
     }
     // if the error page path is not specified in a location nor the root, use the default one
     struct stat statbuf;
-    if (errorPageSs.str().size() == 0 || stat(errorPageSs.str().c_str(), &statbuf) != 0) {
+    if (errorPageSs.str().size() == 0 || (stat(errorPageSs.str().c_str(), &statbuf) != 0 || S_ISDIR(statbuf.st_mode))) {
         errorPageSs.str("");
         errorPageSs << config.getRoot() << "errorPages/" << code << ".html"; 
     }
+
     std::cout << "path for error : " << code << " --> " << errorPageSs.str() << std::endl;
     std::ifstream file(errorPageSs.str().c_str());
+    if (!file) {
+        buildResponse(code);
+        return ;
+    }
     ss << file.rdbuf();
     setContentType(".html");
     setContentLength(ss.str().size());
@@ -267,8 +291,14 @@ void Response::setStatus(unsigned int code) {
         case REQUEST_URI_EXCEEDED:
             status =  "URI Too Long";
             break ;
+        case INTERNAL_SERVER_ERROR:
+            status =  "Internal Server Error";
+            break ;
         case NOT_IMPLEMENTED:
             status =  "Not Implemented";
+            break ;
+        case GATEWAY_TIMEOUT:
+            status =  "Gateway Timeout";
             break ;
         default:
             status = "";
