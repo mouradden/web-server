@@ -54,6 +54,7 @@ class ParseConfigFile
         void    checkValidAutoIndex(std::vector<std::string> splitVector);
         void    checkValidLocationCgiTime(std::vector<std::string> splitVector);
         void    checkValidLocationUpload(std::vector<std::string> splitVector);
+        void    checkValidLocationErrorPage(std::vector<std::string> splitVector);
         void    errorParse();
     public:
         ParseConfigFile();

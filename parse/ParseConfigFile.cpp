@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/03 02:11:32 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/04 22:30:23 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,6 +337,19 @@ void    ParseConfigFile::checkValidLocationCgiTime(std::vector<std::string> spli
     }
 }
 
+void    ParseConfigFile::checkValidLocationErrorPage(std::vector<std::string> splitVector)
+{
+    if(splitVector.size() == 3)
+    {
+        this->data.back().setLocationErrorPage(splitVector[1], splitVector[2]);
+    }
+    else
+    {
+        std::cout << "i check errr page " << std::endl;
+        errorParse();
+    }
+}
+
 void    ParseConfigFile::parser(std::string nameFile)
 {
     size_t i = 0;
@@ -418,9 +431,11 @@ void    ParseConfigFile::parser(std::string nameFile)
                         checkValidLocationUpload(splitVector);
                     else if(splitVector[0] == "return" && this->findBraciteRight == 1
                         && this->findBraciteRightLocation == 1){
-                           
                         checkValidLocationReturn(splitVector);
                         }
+                    else if(splitVector[0] == "error_page" && this->findBraciteRight == 1
+                        && this->findBraciteRightLocation == 1)
+                        checkValidLocationErrorPage(splitVector);
                     else if(splitVector[0] == "}" && this->findBraciteRight == 1 
                         && this->findBraciteRightLocation == 1 && this->findBraciteLeftLocation == 0)
                         {

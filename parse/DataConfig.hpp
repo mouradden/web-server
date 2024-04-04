@@ -24,6 +24,11 @@ struct ErrorPage
 {
     std::string error;
     std::string page;
+    ErrorPage()
+    {
+        error = "";
+        page = "";
+    }
 };
 struct Return
 {
@@ -58,7 +63,7 @@ struct Location
     int     cgiTime;
     Return _return;
     std::string upload;
-    
+    ErrorPage errorPage;
     Location(){
         autoIndex = 0;
         cgiExtension = "";
@@ -111,6 +116,7 @@ class DataConfig
         void    setLocationCgiBin(std::string cgiBin);
         void    setLocationReturn(std::string returnStatus, std::string returnPath);
         void    setLocationUpload(std::string upload);
+        void    setLocationErrorPage(std::string error, std::string page);
         void    setLocationCgiTime(int cgiTime);
         void    errorData();
 

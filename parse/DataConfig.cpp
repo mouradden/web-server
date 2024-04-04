@@ -179,6 +179,11 @@ void    DataConfig::setLocationReturn(std::string returnStatus, std::string retu
     this->vectorLocation.back()._return.path = returnPath;
 }
 
+void    DataConfig::setLocationErrorPage(std::string error, std::string page)
+{
+    this->vectorLocation.back().errorPage.error = error;
+    this->vectorLocation.back().errorPage.page = page;
+}
 
 void DataConfig::printDataConfig() {
     // Print listen
