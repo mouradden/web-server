@@ -81,12 +81,12 @@ server {
 
     location /image/ {
 
-        root /Users/nachab/Desktop/latestWebServ/
-        index index.php
+        root /Users/ahajji/Desktop/morad/
+        index index.html
         methods GET POST
         cgi_extention   .py
         cgi_bin      dd
-        upload     /Users/nachab/Desktop/latestWebServ/
+        upload     /Users/ahajji/Desktop/morad/
         cgi_time    2
     }
 

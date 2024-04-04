@@ -7,11 +7,15 @@
 </head>
 <body>
     <h1>Hello, World!</h1>
-    <form action="http://127.0.0.1:8081/image.png" method="get">
+    <form action="/image/" method="get">
+      
         <input type="submit" value="Send GET Request">
     </form>
       
-    <form action="/image/" method="post">
+    <form action="/" method="post">
+        <input type="text" name="name" id="">
+        <input type="text" name="email" id= "">
+        <input type="file">
       <input type="submit" value="Send POST Request">
     </form>
 </body>
