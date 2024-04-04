@@ -14,10 +14,23 @@
 #define GREEN   "\033[32m"
 
 
-DataConfig  findConfig(ParseConfigFile configFile, std::string host, std::string port)
+DataConfig  findConfig(ParseConfigFile configFile, std::string serverName, std::string host, std::string port)
 {
-   
+   (void)host; (void)port;
     std::vector<DataConfig> config = configFile.getData();
+    for (size_t i = 0; i < config.size(); i++)
+    {
+        DataConfig currentConfig = config[i];
+        std::vector<std::string> servers = currentConfig.getServerName();
+        for(std::vector<std::string>::iterator it = servers.begin(); it != servers.end(); ++it)
+        {
+            if ((*it).compare(serverName) == 0)
+            {
+                // std::cout << "server = |" << *it << "| " << serverName << "\n";
+                return (currentConfig);
+            }
+        }
+    }
     for (size_t i = 0; i < config.size(); i++)
     {
         int count = 0;
@@ -65,6 +78,9 @@ int main(int ac, char **av, char **envp)
     }
     while (true) 
     {
+        // DataConfig conf = findConfig(config, "googl1e.com", "127.0.0.1", "8081");
+        // conf.printDataConfig();
+        // exit(1);
         fdsTmp = fds;
         int pollResult = poll(fdsTmp.data(), fdsTmp.size(), 0);
         if (pollResult == -1)

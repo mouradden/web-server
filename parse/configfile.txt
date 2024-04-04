@@ -6,9 +6,74 @@ server {
 
     listen 8081
     server_name example1.com
+    host  10.12.2.5
+    
+
+    root /Users/mdenguir/Desktop/location/
+
+    index index.html
+
+    # Configure error pages
+    error_page 404 /404.html
+
+    location /image/ {
+        root /Users/mdenguir/Desktop/carVilla/
+        index index.html
+        methods GET POST
+        cgi_extention   .py
+        cgi_bin      dd   
+    }
+
+    location /txt/ {
+
+        root slm2
+        index slm3
+        methods POST
+        autoindex off
+        cgi_extention   .dd
+        cgi_bin      dff
+    }
+}
+server {
+
+    listen 8082
+    server_name google.com
+    host  10.12.2.5
+    
+
+    root /Users/mdenguir/Desktop/location/
+
+    index index.html
+
+    # Configure error pages
+    error_page 404 /404.html
+
+    location /image/ {
+        root /Users/mdenguir/Desktop/carVilla/
+        index index.html
+        methods GET POST
+        cgi_extention   .py
+        cgi_bin      dd   
+    }
+
+    location /txt/ {
+
+        root slm2
+        index slm3
+        methods POST
+        autoindex off
+        cgi_extention   .dd
+        cgi_bin      dff
+    }
+}
+
+server {
+
+    listen 8081
+    server_name example.com
     host 127.0.0.1
     
-    root /Users/ahajji/Desktop/morad/
+    root /Users/nachab/Desktop/latestWebServ/
 
     index index.html
 
