@@ -9,7 +9,7 @@ server {
     host  127.0.0.1
     
 
-    root /Users/ahajji/Desktop/morad/
+    root /Users/mdenguir/Desktop/webserv5/
 
     index index.html
 
@@ -17,7 +17,7 @@ server {
     error_page 404 /cgi/
 
     location /image/ {
-        root /Users/ahajji/Desktop/morad/
+        root /Users/mdenguir/Desktop/location/
         index index.php
         methods GET POST
         cgi_extention   .php
@@ -25,7 +25,49 @@ server {
         error_page 404 /cgi/
     }
     location / {
-        root /Users/ahajji/Desktop/morad/
+        root /Users/mdenguir/Desktop/location/
+        root /Users/nachab/Desktop/latestWebServ/
+        index index.html
+        methods GET POST
+        cgi_extention   .py
+        cgi_bin      dd   
+    }
+
+    location /txt/ {
+
+        root slm2
+        index slm3
+        methods POST
+        autoindex off
+        cgi_extention   .dd
+        cgi_bin      dff
+    }
+}
+
+server {
+
+    listen 8082
+    server_name example1.com
+    host  127.0.0.1
+    
+
+    root /Users/mdenguir/Desktop/carVilla/
+
+    index index.html
+
+    # Configure error pages
+    error_page 404 /cgi/
+
+    location /image/ {
+        root /Users/mdenguir/Desktop/location/
+        index index.php
+        methods GET POST
+        cgi_extention   .php
+        cgi_bin      dd
+        error_page 404 /cgi/
+    }
+    location / {
+        root /Users/mdenguir/Desktop/location/
         root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST

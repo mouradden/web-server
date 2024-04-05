@@ -12,6 +12,11 @@ Request::Request(std::string buffer) {
     parseRequest(buffer, "\r\n");
     path = "";
     location = "";
+    // int delay = 0;
+    // while (delay < 1000000)
+    // {
+    //     delay++;
+    // }
 }
 
 Request::~Request() {
@@ -132,28 +137,22 @@ void Request::parseRequest(std::string buffer, std::string delim) {
     std::string line;
     size_t pos = 0;
 
-    // Find the body separator
     size_t bodyPos = buffer.find("\r\n\r\n");
     if (bodyPos != std::string::npos) {
-        // Separate the body from the buffer
         body = buffer.substr(bodyPos + 4);
-        // Remove the body from the buffer
         buffer.erase(bodyPos);
     }
 
-    // Parse the headers
     while ((pos = buffer.find(delim)) != std::string::npos) {
         line = buffer.substr(0, pos);
         headers.push_back(line);
         buffer.erase(0, pos + delim.size());
     }
 
-    // If there's any remaining header line, add it to the headers
     if (!buffer.empty()) {
         headers.push_back(buffer);
     }
 
-    // Parse the request line and headers
     for (size_t i = 0; i < headers.size(); i++) {
         if (i == 0) {
             parseRequestLine(headers[i]);
@@ -315,7 +314,7 @@ void    Request::checkWichServer()
 
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
-    std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
+    // std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 

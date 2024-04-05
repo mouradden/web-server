@@ -51,6 +51,14 @@ DataConfig  findConfig(ParseConfigFile configFile, std::string serverName, std::
     }
     return (DataConfig());
 }
+void delay()
+{
+    int i = 0;
+    while (i < 1000000)
+    {
+        i++;
+    }
+}
 
 int main(int ac, char **av, char **envp)
 {
@@ -78,14 +86,12 @@ int main(int ac, char **av, char **envp)
     }
     while (true) 
     {
-        // DataConfig conf = findConfig(config, "googl1e.com", "127.0.0.1", "8081");
-        // conf.printDataConfig();
-        // exit(1);
         fdsTmp = fds;
         int pollResult = poll(fdsTmp.data(), fdsTmp.size(), 0);
         if (pollResult == -1)
         {
-            std::cerr << "Error in poll\n";
+            fdsTmp.clear();
+            fds.clear();
             return 1;
         }
         for (size_t i = 0; i < fdsTmp.size(); i++)
@@ -93,6 +99,7 @@ int main(int ac, char **av, char **envp)
             server.acceptNewConnections(fds, fdsTmp, Clients, i);
             server.handleClientInput(fds, fdsTmp, Clients, i);
             server.deliverResponseToClient(fds, fdsTmp, Clients, i);
+            delay();
         }
     }
     return 0;
