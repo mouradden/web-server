@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <string>
 class Client;
+class Request;
+
 class Response {
     private:
         std::string httpVersion;
@@ -28,6 +30,7 @@ class Response {
         Response();
         void buildResponse(unsigned int code);
         void buildResponse(DataConfig &config, std::string location, unsigned int code);
+        void buildResponseWithCgi(Response& response, DataConfig& config, Request& request, std::string path);
         int sendResponse(int socket, Client client);
 
         Response(const Response& ref);
@@ -38,10 +41,10 @@ class Response {
         void setContentLength(unsigned int length);
         void setResponseBody(std::string content);
         void setHeader(std::string key, std::string value);
-        void setSocket(int socket);
-        void setState(int state);
+        // void setSocket(int socket);
+        // void setState(int state);
         void setResponseEntity(std::string response);
-        void setFileOffset(int offset);
+        // void setFileOffset(int offset);
 
         std::string getContentType();
         unsigned int getContentLength();
