@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/04 23:50:23 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/05 00:00:22 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -368,6 +368,28 @@ void    ParseConfigFile::checkValidLocationMaxSize(std::vector<std::string> spli
     }
     else
     {
+        std::cout << "i check max size " << std::endl;
+        errorParse();
+    }
+}
+void    ParseConfigFile::checkValidMaxSize(std::vector<std::string> splitVector)
+{
+    if(splitVector.size() == 2)
+    {
+        int i = 0;
+        while (splitVector[1][i])
+        {
+            if(std::isdigit(splitVector[1][i]) == 0)
+                errorParse();
+            i++;
+        }
+        long long size = std::stoll(splitVector[1]);
+        if(size > 1000000000)
+            errorParse();
+        this->data.back().setSizeMax(size);
+    }
+    else
+    {
         std::cout << "i check autoIndex " << std::endl;
         errorParse();
     }
@@ -423,6 +445,9 @@ void    ParseConfigFile::parser(std::string nameFile)
                     else if(splitVector[0] == "error_page" && this->findBraciteRight == 1
                         && this->findBraciteRightLocation == 0)
                         checkValidErrorPage(splitVector);
+                    else if(splitVector[0] == "max_body_size" && this->findBraciteRight == 1
+                        && this->findBraciteRightLocation == 0)
+                        checkValidMaxSize(splitVector);
                     else if(splitVector[0] == "location" && this->findBraciteRight == 1)
                         checkValidLocation(splitVector);
                     else if(splitVector[0] == "root" && this->findBraciteRight == 1

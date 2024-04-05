@@ -315,7 +315,6 @@ void    Request::checkWichServer()
 
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
-    std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 

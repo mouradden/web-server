@@ -39,6 +39,7 @@ class ParseConfigFile
         void    checkValidRoot(std::vector<std::string> splitVector);
         void    checkValidIndex(std::vector<std::string> splitVector);
         void    checkValidErrorPage(std::vector<std::string> splitVector);
+        void    checkValidMaxSize(std::vector<std::string> splitVector);
         void    checkValidLocation(std::vector<std::string> splitVector);
         void    checkValidLocationRoot(std::vector<std::string> splitVector);
         void    checkValidLocationAlias(std::vector<std::string> splitVector);

@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/03 00:00:05 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/04 22:54:31 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/05 02:55:25 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,51 @@ std::string getLastPart(const std::string& path) {
     }
     return "";
 }
+int checkUpload(Request request)
+{
+    if(request.getHeader("Content-Type").find("multipart/form-data; boundary=-") != std::string::npos)
+        return 1;
+    return 0;
+}
+struct FormData {
+    std::string fileName;
+    std::string fileContent;
+};
 
+void    upload(Request request)
+{
+    std::vector<FormData> formData;
+    size_t startBoundary = request.getHeader("Content-Type").find("boundary=");
+    if(startBoundary == std::string::npos)
+        return ;
+    std::string boundary = request.getHeader("Content-Type").substr(startBoundary + 9);
+    size_t firstBoundary = request.getBody().find(boundary);
+
+    while (firstBoundary != std::string::npos)
+    {
+        size_t pos = request.getBody().find(boundary, firstBoundary + boundary.length());
+        if(pos == std::string::npos)
+        {
+            std::cout << "i am her \n\n\n\n\n" << request.getBody();
+            break;
+        }
+        FormData data;
+        std::string partBoundary = request.getBody().substr(firstBoundary + boundary.length() + 2 , pos);
+        size_t posNameFile =  request.getBody().find("filename=\"");
+    
+        size_t posLasNameFile =  request.getBody().find("\"", posNameFile + 10);
+        std::string fileName = request.getBody().substr(posNameFile + 10, posLasNameFile - posNameFile - 10);
+        // std::cout <<  "boundary part ok "<< fileName << "\n\n\n\n";
+        size_t valueStart = request.getBody().find("\r\n\r\n", posLasNameFile) + 4;
+        size_t valueEnd = request.getBody().find("\r\n", valueStart);
+        
+        data.fileName = fileName;
+        data.fileContent = request.getBody().substr(valueStart, valueEnd - valueStart);
+        formData.push_back(data);
+        firstBoundary = pos;
+    }
+    std::cout << "test okkkkk           \n\n\n\n" <<formData[0].fileContent << "\n\n\n\n finish\n" <<std::endl;
+}
 std::string listFils(const std::string& path, Request request)
 {
     std::string html = "<html><body><ul>";
@@ -109,6 +153,11 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
     }
     else
     {
+        if (checkUpload(request))
+        {
+            std::cout << "brinaaa reeeeer ntistiiiiiw \n\n\n\n\n";
+            upload(request);
+        }
         fileContent = returnContentFile(path, response);
         if (fileContent == "error file")
             return ;

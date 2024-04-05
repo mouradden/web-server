@@ -86,6 +86,7 @@ class DataConfig
         std::string index;
         std::string host;
         int autoIndex;
+        long long maxSize;
         std::vector<ErrorPage> errorPage;
         std::vector<Location> vectorLocation;
 
@@ -105,6 +106,8 @@ class DataConfig
         void    setHost(std::string host);
         int    getAutoIndex();
         void    setAutoIndex(int autoIndex);
+        long long    getSizeMax();
+        void    setSizeMax(long long maxSize);
         std::vector<Location>&    getLocation();
         std::vector<Location>::iterator getSpecificLocation(std::string location);
         void    setLocation(std::string _location);

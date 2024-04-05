@@ -12,12 +12,12 @@ server {
     root /Users/ahajji/Desktop/morad/
 
     index index.html
-
+max_body_size   1000000000
     # Configure error pages
     error_page 404 /cgi/
 
     location /image/ {
-        index index.php
+        index index.html
         methods GET POST
         cgi_extention   .php
         error_page 404 /cgi/
