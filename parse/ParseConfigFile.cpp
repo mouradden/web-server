@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/05 00:00:22 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/05 15:21:27 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,7 +223,11 @@ void    ParseConfigFile::checkValidLocationAutoIndex(std::vector<std::string> sp
 void    ParseConfigFile::checkValidLocationCgiExtention(std::vector<std::string> splitVector)
 {
     if(splitVector.size() == 2)
-        this->data.back().setLocationCgiExtention(splitVector[1]);
+    {
+        if(splitVector[1] == ".php")
+            this->data.back().setLocationCgiExtention(splitVector[1]);
+        else errorParse();
+    }
     else
     {
         std::cout << "i check cgiextention" << std::endl;

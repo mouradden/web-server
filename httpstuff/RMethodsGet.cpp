@@ -40,7 +40,7 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
     if (it != config.getLocation().end()) {
         std::string indexFile = it->index.empty() ? config.getIndex() : it->index;
         std::ifstream file(path + indexFile);
-        if (!file.is_open()) {
+        if (!file.is_open() || indexFile.empty()) {
             if (it->autoIndex) {
                 ss << generateHTML(path.c_str());
                 fillResponse(response, ss, ".html");
