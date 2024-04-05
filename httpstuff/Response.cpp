@@ -173,6 +173,33 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
     responseEntity = ss.str();
 }
 
+void Response::buildResponseWithCgi(Response& response, DataConfig& config, Request& request, std::string path) {
+    CgiOutput  data;
+
+    std::string location = request.getLocation().empty() ? "/" : request.getLocation();
+    if (config.getSpecificLocation(location)->cgiExtension != "") {
+        data = Cgi::CallCgi(path, request, "/", config);
+        if(data.getCgiError() == "error")
+            response.buildResponse(config, location, INTERNAL_SERVER_ERROR);
+        else if(data.getCgiError() == "time out")
+            response.buildResponse(GATEWAY_TIMEOUT);
+        else if(data.getLocation().empty())
+        {
+            response.setContentType(path);
+            response.setContentLength(data.getBody().size());
+            response.setResponseBody(data.getBody());
+            response.buildResponse(OK);
+        }
+        else
+        {
+            response.setHeader("Location:", data.getLocation());
+            response.buildResponse(TEMPORARY_REDIRECT);
+        }
+    } else {
+        response.buildResponse(config, location, FORBIDDEN);
+    }
+}
+
 int Response::sendResponse(int socket, Client client) {
     size_t totalSize = client.getResponseBuffer().size();
 

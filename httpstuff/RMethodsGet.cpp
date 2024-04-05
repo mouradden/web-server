@@ -34,13 +34,32 @@ void fillResponse(Response &response, std::ostringstream& ss, std::string filety
     response.buildResponse(OK);
 }
 
+int checkCgiRequired(std::string file) {
+    std::string extension = "";
+    size_t pos = file.find_last_of(".");
+    if (pos != std::string::npos) {
+        extension = file.substr(pos);
+        if (extension == ".php") {
+            return (1);
+        } else {
+            return (0);
+        }
+    } else {
+        return (0);
+    }
+}
+
 void handleFolder(Response &response, std::vector<Location>::iterator &it, DataConfig &config, Request &request) {
     std::ostringstream ss;
     std::string path = request.getPath();
     if (it != config.getLocation().end()) {
         std::string indexFile = it->index.empty() ? config.getIndex() : it->index;
+        if (checkCgiRequired(indexFile)) {
+            response.buildResponseWithCgi(response, config, request, request.getPath() + indexFile);
+            return ;
+        }
         std::ifstream file(path + indexFile);
-        if (!file.is_open()) {
+        if (!file.is_open() || indexFile.empty()) {
             if (it->autoIndex) {
                 ss << generateHTML(path.c_str());
                 fillResponse(response, ss, ".html");
@@ -53,7 +72,11 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
         }
     } else if (it == config.getLocation().end()) {
         std::ifstream file(path + config.getIndex());
-        if (!file.is_open()) {
+        if (checkCgiRequired(config.getIndex())) {
+            response.buildResponseWithCgi(response, config, request, request.getPath() + config.getIndex());
+            return ;
+        }
+        if (!file.is_open() && config.getIndex().empty()) {
             if (config.getAutoIndex()) {
                 ss << generateHTML(path.c_str());
                 fillResponse(response, ss, ".html");
@@ -69,6 +92,11 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
 
 void handleFile(DataConfig &config, Response &response, Request &request) {
     std::ostringstream ss;
+
+    if (checkCgiRequired(request.getPath())) {
+        response.buildResponseWithCgi(response, config, request, request.getPath());
+        return ;
+    }
     std::ifstream file(request.getPath());
     if (!file.is_open()) {
         response.buildResponse(config, request.getLocation(), NOT_FOUND);
