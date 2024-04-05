@@ -105,33 +105,6 @@ int Request::checkAllowedChars(std::string value) {
     return (0);
 }
 
-// void Request::parseRequest(std::string buffer, std::string delim) {
-//     std::vector<std::string> values;
-//     std::string line;
-//     size_t pos = 0;
-
-//     while ((pos = buffer.find(delim))!= std::string::npos) {
-//         if (buffer.compare(0, 4, delim, 0, 4) == 0) {
-//             values.push_back(delim);
-//             break ;
-//         }
-//         line = buffer.substr(0, pos);
-//         values.push_back(line);
-//         buffer.erase(0, pos + delim.size());
-//     }
-//     if (!buffer.empty()) {
-//         body = buffer;
-//         std::cout << "body equals == " << body << std::endl;
-//     }
-//     for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
-//         if (i == 0) {
-//             // std::cout << "======> values |" << values[i] << "|\n";
-//             parseRequestLine(values[i]);
-//         } else {
-//             parseHeaders(values[i]);
-//         }
-//     }
-// }
 void Request::parseRequest(std::string buffer, std::string delim) {
     std::vector<std::string> headers;
     std::string line;
@@ -196,8 +169,6 @@ void Request::buildPath(DataConfig &config) {
     } else {
         path = config.getRoot() + requestRessource.substr(1);
     }
-    // std::cout << "location built is \"" << location << "\"" << std::endl;
-    // std::cout << "path built is \"" << path << "\"" << std::endl;
 }
 
 int Request::validateUri(DataConfig &config) {
@@ -207,7 +178,6 @@ int Request::validateUri(DataConfig &config) {
     }
 
     buildPath(config);
-    // std::cout << "path built is " << path << std::endl;
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
         return (NOT_FOUND);
@@ -246,11 +216,10 @@ int Request::validRequest(DataConfig config) {
         std::cout << "request uri : exceeded 2048\n";
         return (REQUEST_URI_EXCEEDED);
     }
-    // if client request body is larger than maximum body allowed in config file (change 8000 value to config file value
-    // if (requestEntity.size() > 8000) {
-    //     std::cout << "request entity too large\n";
-    //     return (ENTITY_LENGTH_EXCEEDED);
-    // }
+    if (static_cast<int>(requestEntity.size()) > config.getSizeMax()) {
+        std::cout << "request entity too large\n";
+        return (ENTITY_LENGTH_EXCEEDED);
+    }
     if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
         return (NOT_IMPLEMENTED);
     }

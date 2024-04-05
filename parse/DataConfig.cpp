@@ -185,6 +185,18 @@ void    DataConfig::setLocationErrorPage(std::string error, std::string page)
     this->vectorLocation.back().errorPage.page = page;
 }
 
+void    DataConfig::setLocationMaxSize(long long maxSize)
+{
+    this->vectorLocation.back().maxSize = maxSize;
+}
+long long    DataConfig::getSizeMax()
+{
+    return this->maxSize;
+}
+void    DataConfig::setSizeMax(long long maxSize)
+{
+    this->maxSize = maxSize;
+}
 void DataConfig::printDataConfig() {
     // Print listen
     std::vector<std::string> listenVec = getListen();

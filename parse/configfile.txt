@@ -11,18 +11,19 @@ server {
 
     root /Users/mdenguir/Desktop/webserv5/
 
-    index index.html
-
+    #index index.html
+    max_body_size   1000000000
     # Configure error pages
     error_page 404 /cgi/
 
     location /image/ {
-        root /Users/mdenguir/Desktop/location/
+        root /Users/ahajji/Desktop/morad/
         index index.php
         methods GET POST
         cgi_extention   .php
-        cgi_bin      dd
+        autoindex on
         error_page 404 /cgi/
+        max_body_size   1000000000
     }
     location / {
         root /Users/mdenguir/Desktop/location/
@@ -39,7 +40,7 @@ server {
         index slm3
         methods POST
         autoindex off
-        cgi_extention   .dd
+        cgi_extention   .php
         cgi_bin      dff
     }
 }
@@ -71,7 +72,7 @@ server {
         root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST
-        cgi_extention   .py
+        cgi_extention   .php
         cgi_bin      dd   
     }
 
@@ -81,7 +82,7 @@ server {
         index slm3
         methods POST
         autoindex off
-        cgi_extention   .dd
+        cgi_extention   .php
         cgi_bin      dff
     }
 }

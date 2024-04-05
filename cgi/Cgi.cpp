@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 17:48:53 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/04 19:51:50 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/04 23:24:16 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,7 @@ CgiOutput Cgi::CallCgi(std::string path, Request& request, std::string check, Da
     std::stringstream leng;
     leng << request.getBody().length();
     std::string CONTENT_LENGTH = "CONTENT_LENGTH=" + leng.str();
-    std::cout << request.getBody().length() << "       lennnnnnnn\n\n\n\n";
-    std::string Status = "Status=200 OK";
+    std::string STATUS = "STATUS=200 OK";
     std::string REDIRECT_STATUS = "REDIRECT_STATUS=200";
     std::string REQUEST_METHOD = "REQUEST_METHOD="+request.getRequestMethod();
     std::string QUERY_STRING = "QUERY_STRING=" + request.getQueryString();
@@ -62,7 +61,7 @@ CgiOutput Cgi::CallCgi(std::string path, Request& request, std::string check, Da
     SERVER_PROTOCOL,
     CONTENT_TYPE,
     CONTENT_LENGTH,
-    Status,
+    STATUS,
     REDIRECT_STATUS,
     REQUEST_METHOD,
     DOCUMENT_ROOT,
@@ -166,12 +165,7 @@ out = dup(STDOUT_FILENO);
             }
         }
         else
-        { 
             body = result;
-        }
-        std::cout << "this is my result " << result << std::endl;
-        std::cout << result << "\n";
-        std::cout << "just test ok " << header_s.begin()->first << std::endl;
         std::map<std::string, std::string>::iterator it = header_s.find("Content-Length");
         if(it != header_s.end())
         {
