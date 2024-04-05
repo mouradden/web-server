@@ -124,12 +124,17 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
     std::vector<Location>::iterator locationdata = config.getSpecificLocation(location);
     std::vector<Location> locations = config.getLocation();
     if (locationdata != locations.end()) {
-        for (size_t i = 0; i < locations.size(); i++) {
-            // if this location has an error page for the specific code
+        if (atoi(locationdata->errorPage.error.c_str()) == static_cast<int>(code)) {
+            struct stat statbuf;
+            if (stat(locationdata->errorPage.page.c_str(), &statbuf) != 0 || S_ISDIR(statbuf.st_mode)) {
+                errorPageSs << config.getRoot() << locationdata->errorPage.page;
+            } else {
+                errorPageSs << locationdata->errorPage.page;
+            }
         }
     }
     // if the location of the error page is not present, check if it's present in the config file
-    if (errorPageSs.str().size() == 0) {
+    if (errorPageSs.str().size() == 0 || errorPageSs.str().empty()) {
         std::vector<ErrorPage> errorPages = config.getErrorPage();
         for (size_t i = 0; i < errorPages.size(); i++) {
             if (atoi(errorPages[i].error.c_str()) == static_cast<int>(code)) {
@@ -145,7 +150,7 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
     }
     // if the error page path is not specified in a location nor the root, use the default one
     struct stat statbuf;
-    if (errorPageSs.str().size() == 0 || (stat(errorPageSs.str().c_str(), &statbuf) != 0 || S_ISDIR(statbuf.st_mode))) {
+    if ((errorPageSs.str().size() == 0 || errorPageSs.str().empty()) || (stat(errorPageSs.str().c_str(), &statbuf) != 0 || S_ISDIR(statbuf.st_mode))) {
         errorPageSs.str("");
         errorPageSs << config.getRoot() << "errorPages/" << code << ".html"; 
     }

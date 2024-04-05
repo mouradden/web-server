@@ -247,11 +247,10 @@ int Request::validRequest(DataConfig config) {
         std::cout << "request uri : exceeded 2048\n";
         return (REQUEST_URI_EXCEEDED);
     }
-    // if client request body is larger than maximum body allowed in config file (change 8000 value to config file value
-    // if (requestEntity.size() > 8000) {
-    //     std::cout << "request entity too large\n";
-    //     return (ENTITY_LENGTH_EXCEEDED);
-    // }
+    if (body.size() > static_cast<size_t>(config.getSizeMax())) {
+        std::cout << "request entity too large\n";
+        return (ENTITY_LENGTH_EXCEEDED);
+    }
     if (requestMethod.compare("GET") != 0 && requestMethod.compare("POST") != 0 && requestMethod.compare("DELETE") != 0) {
         return (NOT_IMPLEMENTED);
     }

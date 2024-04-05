@@ -9,7 +9,7 @@ server {
     host  127.0.0.1
     
 
-    root /Users/ahajji/Desktop/morad/
+    root /Users/nachab/Desktop/latestWebServ/
 
     index index.html
 max_body_size   1000000000
@@ -24,7 +24,7 @@ max_body_size   1000000000
         max_body_size   1000000000
     }
     location / {
-        root /Users/ahajji/Desktop/morad/
+        root /Users/nachab/Desktop/latestWebServ/
         root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST

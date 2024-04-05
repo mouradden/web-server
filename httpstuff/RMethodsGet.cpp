@@ -26,6 +26,29 @@ std::string generateHTML(const char* path) {
     return ss.str();
 }
 
+void buildResponseWithCgi(Response& response, DataConfig& config, Request& request, std::string path) {
+    CgiOutput  data;
+
+    data = Cgi::CallCgi(path, request, "/", config);
+    // std::cout <<"hiii    " << data.getBody() << "hiiiiiiiiii am her \n\n\n\n\n\n\n\n";
+    if(data.getCgiError() == "error")
+        response.buildResponse(config, request.getLocation(), INTERNAL_SERVER_ERROR);
+    else if(data.getCgiError() == "time out")
+        response.buildResponse(GATEWAY_TIMEOUT);
+    else if(data.getLocation().empty())
+    {
+        response.setContentType(path);
+        response.setContentLength(data.getBody().size());
+        response.setResponseBody(data.getBody());
+        response.buildResponse(OK);
+    }
+    else
+    {
+        response.setHeader("Location:", data.getLocation());
+        response.buildResponse(TEMPORARY_REDIRECT);
+    }
+}
+
 void fillResponse(Response &response, std::ostringstream& ss, std::string filetype) {
     response.setContentType(filetype);
     response.setContentLength(ss.str().size());
@@ -40,6 +63,18 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
     if (it != config.getLocation().end()) {
         std::string indexFile = it->index.empty() ? config.getIndex() : it->index;
         std::ifstream file(path + indexFile);
+        
+        // cgi part
+        // std::string extension = indexFile.find_last_of(".") != std::string::npos ? indexFile.substr(path.find_last_of(".")) : "";
+        // if (extension == ".php") {
+        //     buildResponseWithCgi(response, config, request, path + indexFile);
+        //     return ;
+        // } else {
+        //     response.buildResponse(config, request.getLocation(), FORBIDDEN);
+        //     return ;
+        // }
+        // cgi end
+
         if (!file.is_open()) {
             if (it->autoIndex) {
                 ss << generateHTML(path.c_str());
@@ -67,8 +102,21 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
     }
 }
 
-void handleFile(DataConfig &config, Response &response, Request &request) {
+void handleFile(Response &response, std::vector<Location>::iterator &it, DataConfig &config, Request &request) {
     std::ostringstream ss;
+    std::cout << it->_return.path;
+    // std::string path = request.getPath();
+    
+    // std::string extension = path.find_last_of(".") != std::string::npos ? path.substr(path.find_last_of(".")) : "";
+    // if (extension == ".php") {
+    //     if (it->cgiExtension.empty()) {
+    //         buildResponseWithCgi(response, config, request, path);
+    //         return ;
+    //     } else {
+    //         response.buildResponse(config, request.getLocation(), FORBIDDEN);
+    //         return ;
+    //     }
+    // } 
     std::ifstream file(request.getPath());
     if (!file.is_open()) {
         response.buildResponse(config, request.getLocation(), NOT_FOUND);
@@ -84,11 +132,11 @@ Response buildResponseWithFile(DataConfig config, Request &request) {
 
     std::string path = request.getPath();
     std::string location = request.getLocation();
+    std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
     if (path.back() == '/') {
-        std::vector<Location>::iterator locationData = config.getSpecificLocation(location);
         handleFolder(response, locationData, config, request);
     } else {
-        handleFile(config, response, request);
+        handleFile(response, locationData, config, request);
     } 
     return (response);
 }
