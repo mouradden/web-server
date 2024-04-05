@@ -28,8 +28,6 @@ max_body_size   1000000000
         root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST
-        cgi_extention   .py
-        cgi_bin      dd   
     }
 
     location /txt/ {

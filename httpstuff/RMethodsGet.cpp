@@ -65,14 +65,15 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
         std::ifstream file(path + indexFile);
         
         // cgi part
-        // std::string extension = indexFile.find_last_of(".") != std::string::npos ? indexFile.substr(path.find_last_of(".")) : "";
-        // if (extension == ".php") {
-        //     buildResponseWithCgi(response, config, request, path + indexFile);
-        //     return ;
-        // } else {
-        //     response.buildResponse(config, request.getLocation(), FORBIDDEN);
-        //     return ;
-        // }
+        size_t pos = indexFile.find_last_of(".");
+        std::string extension = "";
+        if (pos != std::string::npos) {
+            extension = indexFile.substr(pos);
+        }
+        if (extension == ".php") {
+            buildResponseWithCgi(response, config, request, path + indexFile);
+            return ;
+        }
         // cgi end
 
         if (!file.is_open()) {
@@ -105,24 +106,28 @@ void handleFolder(Response &response, std::vector<Location>::iterator &it, DataC
 void handleFile(Response &response, std::vector<Location>::iterator &it, DataConfig &config, Request &request) {
     std::ostringstream ss;
     std::cout << it->_return.path;
-    // std::string path = request.getPath();
+    std::string path = request.getPath();
     
-    // std::string extension = path.find_last_of(".") != std::string::npos ? path.substr(path.find_last_of(".")) : "";
-    // if (extension == ".php") {
-    //     if (it->cgiExtension.empty()) {
-    //         buildResponseWithCgi(response, config, request, path);
-    //         return ;
-    //     } else {
-    //         response.buildResponse(config, request.getLocation(), FORBIDDEN);
-    //         return ;
-    //     }
-    // } 
-    std::ifstream file(request.getPath());
+    size_t pos = path.find_last_of(".");
+    std::string extension = "";
+    if (pos != std::string::npos) {
+        extension = path.substr(pos);
+    }
+    if (extension == ".php") {
+        if (it->cgiExtension.empty()) {
+            buildResponseWithCgi(response, config, request, path);
+            return ;
+        } else {
+            response.buildResponse(config, request.getLocation(), FORBIDDEN);
+            return ;
+        }
+    } 
+    std::ifstream file(path);
     if (!file.is_open()) {
         response.buildResponse(config, request.getLocation(), NOT_FOUND);
     } else {
         ss << file.rdbuf();
-        fillResponse(response, ss, request.getPath());
+        fillResponse(response, ss, path);
     }
 }
 
