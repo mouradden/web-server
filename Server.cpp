@@ -15,23 +15,23 @@ void Server::createSocket(DataConfig config)
         int socketFd = socket(AF_INET, SOCK_STREAM, 0);
         if (socketFd == -1)
         {
-            std::cout << "Failed to create socket. Exiting..." << std::endl;
+            // std::cout << "Failed to create socket. Exiting..." << std::endl;
             close(socketFd);
             exit(1);
         }
         if (fcntl(socketFd, F_SETFL, O_NONBLOCK) == -1)
         {
-            std::cerr << "Error setting socket to non-blocking\n";
+            // std::cerr << "Error setting socket to non-blocking\n";
             close(socketFd);
             return ;
         }
         int enable = 1;
         if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-            std::cerr << "setsockopt(SO_REUSEADDR) failed";
+            // std::cerr << "setsockopt(SO_REUSEADDR) failed";
         setServerSocket(socketFd);
         servers[socketFd] = config;
     }
-    std::cout << "[INFO] " << i << " Sockets successfully created" << std::endl;
+    // std::cout << "[INFO] " << i << " Sockets successfully created" << std::endl;
 }
 
 void Server::createServer(std::vector<DataConfig> config)
@@ -51,7 +51,7 @@ void Server::createServer(std::vector<DataConfig> config)
             else
             {
                 if (inet_pton(AF_INET, config[i].getHost().c_str(), &address.sin_addr) <= 0) {
-                    std::cerr << "Invalid address or address not supported\n";
+                    // std::cerr << "Invalid address or address not supported\n";
                     return ;
                 }
             }
@@ -85,7 +85,7 @@ void Server::putServerOnListening()
             this->serverSockets.erase(this->serverSockets.begin() + i);
             return ;
         }
-        std::cout << "[INFO] Server listening on port " << ntohs(serverAddress[i].sin_port) << std::endl;
+        // std::cout << "[INFO] Server listening on port " << ntohs(serverAddress[i].sin_port) << std::endl;
     }
 }
 
@@ -136,7 +136,7 @@ void    Server::acceptNewConnections(std::vector<pollfd>& fds, std::vector<pollf
             int clientSocket = accept(fdsTmp[i].fd, NULL, NULL);
             if (clientSocket == -1)
             {
-                std::cerr << "Error accepting client connection\n";
+                // std::cerr << "Error accepting client connection\n";
                 fds.erase(fds.begin() + i);
                 fdsTmp.erase(fdsTmp.begin() + i);
                 close(fdsTmp[i].fd);
@@ -144,7 +144,7 @@ void    Server::acceptNewConnections(std::vector<pollfd>& fds, std::vector<pollf
             else
             {
                 if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
-                    std::cerr << "Error setting socket to non-blocking\n";
+                    // std::cerr << "Error setting socket to non-blocking\n";
                     close(clientSocket);
                     return ;
                 }
@@ -293,7 +293,7 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
 
     pos = requestBuffer.find("\r\n\r\n");
     if (pos == std::string::npos) {
-        std::cerr << "Error: Couldn't find end of headers" << std::endl;
+        // std::cerr << "Error: Couldn't find end of headers" << std::endl;
         return;
     }
 
@@ -308,7 +308,7 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
             break ;
         size_t chunkSizePos = requestBuffer.find("\r\n", pos);
         if (chunkSizePos == std::string::npos) {
-            std::cerr << "Error: Couldn't find chunk size" << std::endl;
+            // std::cerr << "Error: Couldn't find chunk size" << std::endl;
             return;
         }
 
