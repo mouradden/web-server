@@ -1,8 +1,0 @@
-/.devcontainer/
-/.github/
-DS_STORE
-*.o
-/parse/configfile.txt
-./webserv
-/.vscode/
-vid.mp4

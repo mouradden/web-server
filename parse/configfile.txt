@@ -9,24 +9,24 @@ server {
     host  127.0.0.1
     
 
-    root /Users/ahajji/Desktop/morad/
+    root /Users/ahajji/Desktop/server_/
 
     index index.html
     max_body_size   1000000000
     error_page 404 /cgi/
 
     location /image/ {
-        root /Users/ahajji/Desktop/morad/
+        root /Users/ahajji/Desktop/server_/
         index index.html
         methods GET POST
         cgi_extention   .php
         autoindex off
         error_page 404 /cgi/
         max_body_size   10000000
-        upload  /Users/ahajji/Desktop/morad/
+        upload  /Users/ahajji/Desktop/server_/
     }
     location /sbs/ {
-        root /Users/ahajji/Desktop/morad/
+        root /Users/ahajji/Desktop/server_/
         index index.html
         methods GET POST
         cgi_extention   .php
@@ -36,7 +36,7 @@ server {
     }
 
     location / {
-        root /Users/ahajji/Desktop/morad/
+        root /Users/ahajji/Desktop/server_/
         index index.html
         methods GET POST
         cgi_extention   .php
