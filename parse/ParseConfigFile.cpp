@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/14 13:55:15 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/05 15:21:27 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/06 00:10:34 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,17 @@ ParseConfigFile::ParseConfigFile()
     this->findBraciteLeft = 0;
     this->findBraciteRightLocation = 0;
     this->findBraciteLeftLocation = 0;
+}
+
+bool ParseConfigFile::isDirectory(const std::string& path) {
+    struct stat info;
+
+    if(stat(path.c_str(), &info) != 0)
+        return false;
+    else if(info.st_mode & S_IFDIR)
+        return true;
+    else
+        return false;
 }
 
 std::vector<std::string>     ParseConfigFile::split(std::string str)
@@ -308,10 +319,8 @@ void    ParseConfigFile::checkValidLocationUpload(std::vector<std::string> split
 {
     if(splitVector.size() == 2)
     {
-        int fd = open(splitVector[1].c_str(), O_RDONLY);
-        if(fd == -1)
+        if(isDirectory(splitVector[1]) == false)
             errorParse();
-        close(fd);
         this->data.back().setLocationUpload(splitVector[1]);
     }
     else

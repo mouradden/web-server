@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 17:48:53 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/04 23:24:16 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/06 00:11:43 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ CgiOutput Cgi::CallCgi(std::string path, Request& request, std::string check, Da
     std::string REDIRECT_STATUS = "REDIRECT_STATUS=200";
     std::string REQUEST_METHOD = "REQUEST_METHOD="+request.getRequestMethod();
     std::string QUERY_STRING = "QUERY_STRING=" + request.getQueryString();
-    // std::string   QUERY_STRING = "QUERY_STRING=name=John&email=Doe";
     std::string DOCUMENT_ROOT;
     std::string SCRIPT_FILENAME;
     if(check == "/")
@@ -86,9 +85,8 @@ start = std::time(nullptr);
         exit(EXIT_FAILURE);
     }
 
-int out;
-
-out = dup(STDOUT_FILENO);
+    int out;
+    out = dup(STDOUT_FILENO);
 
     if (pid == 0) {
     if (request.getRequestMethod() == "POST") {
@@ -98,16 +96,13 @@ out = dup(STDOUT_FILENO);
             exit(EXIT_FAILURE);
         }
 
-    // Write the POST data to the write end of the pipe
-    std::string postdata = request.getBody(); // replace this with your actual POST data
+    std::string postdata = request.getBody(); 
     write(pipefd[1], postdata.c_str(), postdata.size());
-
-    // Close the write end of th e pipe
     close(pipefd[1]);
 
-    // Replace the standard input with the read end of the pipe
+    
     dup2(pipefd[0], STDIN_FILENO);
-    close(pipefd[0]); // close the read end of the pipe, it's not needed anymore
+    close(pipefd[0]);
     }
         int fd = open(outputFile.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
         if (fd == -1)

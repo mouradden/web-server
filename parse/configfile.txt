@@ -17,13 +17,15 @@ server {
     error_page 404 /cgi/
 
     location /image/ {
-        #index index.html
+        index index.html
         methods GET POST
         cgi_extention   .php
-        autoindex on
+        autoindex off
         error_page 404 /cgi/
         max_body_size   1000000000
+        upload /Users/ahajji/Desktop/morad/
     }
+
     location / {
         root /Users/ahajji/Desktop/morad/
         root /Users/nachab/Desktop/latestWebServ/

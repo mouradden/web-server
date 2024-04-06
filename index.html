@@ -10,14 +10,15 @@
     <form action="/image/" method="get">
       
         <input type="submit" value="Send GET Request">
+        <input type="text" name="name" id="">
+        <input type="text" name="email" id= "">
     </form>
       
     <form action="/image/" method="post" enctype="multipart/form-data">
-    <!-- <form action="/image/" method="post"> -->
         <input type="text" name="name" id="">
         <input type="text" name="email" id= "">
-        <input name="file" type="file">
-        <input name="file" type="file">
+        <input name="file" type="file" multiple>
+        <input name="file2" type="file">
         <input type="submit" value="Send POST Request">
     </form>
 </body>

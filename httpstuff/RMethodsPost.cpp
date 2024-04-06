@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/03 00:00:05 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/05 16:45:49 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/06 00:21:37 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,67 +31,82 @@ struct FormData {
     std::string fileContent;
 };
 
-std::vector<FormData>    upload(Request request)
+
+void    upload(Request request, DataConfig config)
 {
     std::vector<FormData> formData;
     size_t startBoundary = request.getHeader("Content-Type").find("boundary=");
     if(startBoundary == std::string::npos)
-        return formData;
+        return ;
     std::string boundary = request.getHeader("Content-Type").substr(startBoundary + 9);
     size_t firstBoundary = request.getBody().find(boundary);
-    std::cout << "hahahahaahhahaahahh \n"<<request.getBody()<< "hohpoohohohoho \n" << std::endl;
     while (firstBoundary != std::string::npos)
-{
-    size_t pos = request.getBody().find(boundary, firstBoundary + boundary.length());
-    if(pos == std::string::npos)
-        break;
-    FormData data;
-    std::string partBoundary = request.getBody().substr(firstBoundary + boundary.length() + 6 , pos);
-    size_t posNameFile =  request.getBody().find("filename=\"", firstBoundary);
-    
-    if (posNameFile == std::string::npos || posNameFile > pos) // check if the current part contains a file
     {
-        firstBoundary = pos;
-        continue; // skip this part if it does not contain a file
-    }
-    
-    size_t posLasNameFile =  request.getBody().find("\"", posNameFile + 10);
-    std::string fileName = request.getBody().substr(posNameFile + 10, posLasNameFile - posNameFile - 10);
-    
-    size_t valueStart = request.getBody().find("\r\n\r\n", posLasNameFile) + 4;
-    size_t valueEnd = request.getBody().find(boundary, valueStart); // find the end of the part by searching for the boundary from the end of the headers
-
-    data.fileName = fileName;
-    data.fileContent = request.getBody().substr(valueStart, valueEnd - valueStart);
-    formData.push_back(data);
-    firstBoundary = pos;
-}
-    return formData;
-}
-
-std::string listFils(const std::string& path, Request request)
-{
-    std::string html = "<html><body><ul>";
-    DIR* dirp = opendir(path.c_str());
-    if (dirp) {
-        struct dirent * dp;
-        while ((dp = readdir(dirp)) != NULL) {
-            std::string filename(dp->d_name);
-            html += "<li><a href=\"" + request.getRequestRessource() + filename + "\">" + filename + "</a></li>";
+        size_t pos = request.getBody().find(boundary, firstBoundary + boundary.length());
+        if(pos == std::string::npos)
+            break;
+        FormData data;
+        std::string partBoundary = request.getBody().substr(firstBoundary + boundary.length() + 6 , pos);
+        size_t posNameFile =  request.getBody().find("filename=\"", firstBoundary);
+        
+        if (posNameFile == std::string::npos || posNameFile > pos) 
+        {
+            firstBoundary = pos;
+            continue; 
         }
-        closedir(dirp);
+        size_t posLasNameFile =  request.getBody().find("\"", posNameFile + 10);
+        std::string fileName = request.getBody().substr(posNameFile + 10, posLasNameFile - posNameFile - 10);
+        
+        size_t valueStart = request.getBody().find("\r\n\r\n", posLasNameFile) + 4;
+        size_t valueEnd = request.getBody().find(boundary, valueStart);
+
+        data.fileName = fileName;
+        data.fileContent = request.getBody().substr(valueStart, valueEnd - valueStart);
+        formData.push_back(data);
+        firstBoundary = pos;
     }
-    html += "</ul></body></html>";
-    std::cout << path << "\n\n\n\n";
-    return html;
+    for (unsigned long i = 0; i < formData.size(); ++i) {
+        std::string filePath = config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->upload + formData[i].fileName;
+        std::ofstream outFile(filePath.c_str());
+
+        if (!outFile) {
+            std::cerr << "Error: Could not open file " << filePath << std::endl;
+            continue;
+        }
+
+        outFile << formData[i].fileContent;
+        outFile.close();
+    }
 }
 
-std::string returnContentFile(std::string path, Response& response)
+std::string listFils(const std::string& path)
+{
+        std::ostringstream ss;
+        DIR *dir = opendir(path.c_str());
+        if (!dir) {
+            return "";
+        }
+
+        ss << "<html><head><title>Directory Listing</title><style>h1 {text-align:center;}</style></head><body><h1>Directory Listing</h1><ul><br>";
+
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL) {
+            if (entry->d_name[0] != '.') {
+                ss << "<li><a href=\"" << entry->d_name << "\">" << entry->d_name << "</a></li>";
+            }
+        }
+        ss << "</ul></body></html>";
+        closedir(dir);
+        return ss.str();
+
+}
+
+std::string returnContentFile(std::string path, Response& response, Request request, DataConfig config)
 {
     std::ifstream file;
     file.open(path.c_str(), std::ios::binary);
     if (!file || !file.is_open()) {
-        response.buildResponse(404);
+        response.buildResponse(config, request.getLocation(),404);
         std::cerr << "Unable to open file\n";
         return "error file";
     }
@@ -106,28 +121,30 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
     std::string line;
     std::string nameFile;
     CgiOutput  data;
-       
-    // if((config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->autoIndex == 1 || config.getAutoIndex() == 1))
-    // {
-    //     response.setStatus(200);
-    //     response.setContentType("index.html");
-    //     response.setContentLength(listFils(path, request).size());
-    //     response.setResponseBody(listFils(path, request));
-    //     response.buildResponse(200);
-    //     return ;
-        
-    // }
+       std::cout << "hi ia m herrr si otan \n";
     if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->index.empty() == 0)
-        nameFile = config.getSpecificLocation(request.getLocation())->index;
-    else if(config.getIndex().empty() == 0)
-        nameFile = config.getIndex();
+        nameFile = config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->index;
     path += nameFile;
     
-    // if (nameFile.empty() && (config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->autoIndex == 0 && config.getAutoIndex() == 0))
-    // {
-    //     response.buildResponse(403);
-    //     return ;
-    // }
+    std::cout << "hi ia m herrr si otan \n\n\n\n\n\n\n\n";
+    std::vector<Location>::iterator it = config.getSpecificLocation(request.getLocation());
+    if (it != config.getLocation().end() && config.getSpecificLocation(request.getLocation())->autoIndex == 1 && nameFile.empty())
+    {
+        std::cout << "this isis is is " << path << std::endl;
+        response.setStatus(200);
+        response.setContentType("index.html");
+        response.setContentLength(listFils(path).size());
+        response.setResponseBody(listFils(path));
+        response.buildResponse(200);
+        return ;
+    }   
+        
+   if(nameFile.empty())
+   {
+        response.buildResponse(config, request.getLocation(),403);
+            return ;
+   }
+    
     std::string extension = "";
     std::size_t pos = nameFile.find_last_of(".");
     if (pos != std::string::npos)
@@ -139,9 +156,9 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
         {
             data = Cgi::CallCgi(path, request, "/", config);
             if(data.getCgiError() == "error")
-                response.buildResponse(500);
+                response.buildResponse(config, request.getLocation(),500);
             else if(data.getCgiError() == "time out")
-                response.buildResponse(504);
+                response.buildResponse(config, request.getLocation(),504);
             else if(data.getLocation().empty())
             {
                 response.setContentType(getLastPart(path));
@@ -156,26 +173,19 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
             }
         }
         else
-            response.buildResponse(403);
+            response.buildResponse(config, request.getLocation(),403);
     }
     else
     {
-        if (checkUpload(request))
-        {
-            std::cout << "brinaaa reeeeer ntistiiiiiw \n\n\n\n\n";
-            upload(request);
-        }
-        // fileContent = returnContentFile(path, response);
-        // if (fileContent == "error file")
-        //     return ;
-        // response.setStatus(200);
-        // response.setContentType(getLastPart(path));
-        // response.setContentLength(fileContent.size());
-        // response.setResponseBody(fileContent);
-        // response.buildResponse(200);
-        std::cout << "thisiis the path    " << path <<std::endl;
-        response.setHeader("Location:", path);
-        response.buildResponse(TEMPORARY_REDIRECT);
+        if (checkUpload(request) && config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->upload.empty())
+            upload(request, config);
+        fileContent = returnContentFile(path, response, request, config);
+        if (fileContent == "error file")
+            return ;
+        response.setContentType(getLastPart(path));
+        response.setContentLength(fileContent.size());
+        response.setResponseBody(fileContent);
+        response.buildResponse(200);
     }
 }
 
@@ -194,11 +204,10 @@ void returnSpecificContentFile(std::string path, DataConfig config,Response& res
         if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->cgiExtension != "")
         {
             data = Cgi::CallCgi(path, request, "/", config);
-            // std::cout <<"hiii    " << data.getBody() << "hiiiiiiiiii am her \n\n\n\n\n\n\n\n";
             if(data.getCgiError() == "error")
-                response.buildResponse(500);
+                response.buildResponse(config, request.getLocation(),500);
             else if(data.getCgiError() == "time out")
-                response.buildResponse(504);
+                response.buildResponse(config, request.getLocation(),504);
             else if(data.getLocation().empty())
             {
                 response.setContentType(getLastPart(path));
@@ -213,20 +222,19 @@ void returnSpecificContentFile(std::string path, DataConfig config,Response& res
             }
         }
         else
-            response.buildResponse(403);
+           response.buildResponse(config, request.getLocation(),403);
     }
     else
     {
-        // fileContent = returnContentFile(path, response);
-        // if (fileContent == "error file")
-        //     return ;
-        // response.setStatus(200);
-        // response.setContentType(getLastPart(path));
-        // response.setContentLength(fileContent.size());
-        // response.setResponseBody(fileContent);
-        // response.buildResponse(200);
-        response.setHeader("Location", path);
-        response.buildResponse(TEMPORARY_REDIRECT);
+        if (checkUpload(request) && config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->upload.empty())
+            upload(request, config);
+        fileContent = returnContentFile(path, response, request, config);
+        if (fileContent == "error file")
+            return ;
+        response.setContentType(getLastPart(path));
+        response.setContentLength(fileContent.size());
+        response.setResponseBody(fileContent);
+        response.buildResponse(200);
     }
 }
 Response RequestMethod::POST(Request& request, DataConfig config)

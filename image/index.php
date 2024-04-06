@@ -11,11 +11,14 @@
     <title>Document</title>
 </head>
 <body>
-    <h1><?php echo "hello word"?></h1>
-    <h1><?php echo $_POST['name']?></h1>
-    <h1><?php echo $_POST['email']?></h1>
-    <h1><?php echo $_GET['name']?></h1>
-    <h1><?php echo $_GET['email']?></h1>
+
+    <h1><?php echo "hello word"   ?></h1>
+  
+    <h1><?php echo $_GET['name']  ?></h1>
+    <h1><?php echo $_GET['email'] ?></h1>
+    <h1><?php echo $_POST['name']  ?></h1>
+    <h1><?php echo $_POST['email'] ?></h1>
+
     <?php
         if(isset($_FILES['file'])){
             echo "<h1>File name: " . $_FILES['file']['name'] . "</h1>";
@@ -31,7 +34,7 @@
             } else {
                 echo "There was an error uploading the file.";
             }
-        }
+        }   
     ?>
 </body>
 </html>

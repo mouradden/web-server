@@ -20,6 +20,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <sys/stat.h>
 // #include <cstring>
 // #include <cstdlib>
 #include "DataConfig.hpp"
@@ -57,6 +58,7 @@ class ParseConfigFile
         void    checkValidLocationUpload(std::vector<std::string> splitVector);
         void    checkValidLocationErrorPage(std::vector<std::string> splitVector);
         void    checkValidLocationMaxSize(std::vector<std::string> splitVector);
+        bool    isDirectory(const std::string& path);
         void    errorParse();
     public:
         ParseConfigFile();

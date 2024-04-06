@@ -197,8 +197,13 @@ void Request::buildPath(DataConfig &config) {
     } else {
         path = config.getRoot() + requestRessource.substr(1);
     }
+    size_t queryPos = path.find_last_of("?");
+    if (queryPos != std::string::npos) {
+        this->queryString = path.substr(queryPos + 1);
+        path.erase(queryPos);
+    }
     // std::cout << "location built is \"" << location << "\"" << std::endl;
-    // std::cout << "path built is \"" << path << "\"" << std::endl;
+    std::cout << "path built is \"" << path << "\"" << std::endl;
 }
 
 int Request::validateUri(DataConfig &config) {
