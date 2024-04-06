@@ -9,11 +9,10 @@ server {
     host  127.0.0.1
     
 
-    root /Users/mdenguir/Desktop/webserv5/
+    root /Users/ahajji/Desktop/morad/
 
-    #index index.html
+    index index.html
     max_body_size   1000000000
-    # Configure error pages
     error_page 404 /cgi/
 
     location /image/ {
@@ -29,7 +28,6 @@ server {
 
     location / {
         root /Users/ahajji/Desktop/morad/
-        root /Users/nachab/Desktop/latestWebServ/
         index index.html
         methods GET POST
         cgi_extention   .php
