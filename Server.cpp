@@ -14,13 +14,13 @@ void Server::createSocket(DataConfig config)
         int socketFd = socket(AF_INET, SOCK_STREAM, 0);
         if (socketFd == -1)
         {
-            std::cout << "Failed to create socket. Exiting..." << std::endl;
+            // std::cout << "Failed to create socket. Exiting..." << std::endl;
             close(socketFd);
             exit(1);
         }
         if (fcntl(socketFd, F_SETFL, O_NONBLOCK) == -1)
         {
-            std::cerr << "Error setting socket to non-blocking\n";
+            // std::cerr << "Error setting socket to non-blocking\n";
             close(socketFd);
             return ;
         }
@@ -55,7 +55,7 @@ void Server::createServer(std::vector<DataConfig> config)
             {
                 // Resolve host to its IP address
                 if (inet_pton(AF_INET, config[i].getHost().c_str(), &address.sin_addr) <= 0) {
-                    std::cerr << "Invalid address or address not supported\n";
+                    // std::cerr << "Invalid address or address not supported\n";
                     return ;
                 }
             }
@@ -142,13 +142,13 @@ void    Server::acceptNewConnections(std::vector<pollfd>& fds, std::vector<pollf
             int clientSocket = accept(fdsTmp[i].fd, NULL, NULL);
             if (clientSocket == -1)
             {
-                std::cerr << "Error accepting client connection\n";
+                // std::cerr << "Error accepting client connection\n";
                 close(fdsTmp[i].fd);
             }
             else
             {
                 if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) == -1) {
-                    std::cerr << "Error setting socket to non-blocking\n";
+                    // std::cerr << "Error setting socket to non-blocking\n";
                     close(clientSocket);
                     return ;
                 }
@@ -230,7 +230,7 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
         } 
         else if (bytesRead == 0)
         {
-            std::cout << "Client disconnected, socket: " << clientSocket << "\n";
+            // std::cout << "Client disconnected, socket: " << clientSocket << "\n";
             close(clientSocket);
             for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end();) {
                 if (it->fd == clientSocket)
@@ -264,7 +264,6 @@ void    Server::deliverResponseToClient(std::vector<pollfd>& fds, std::vector<po
         int clientSocket = fdsTmp[i].fd;
         if (this->sendResponse(clientSocket, Clients[clientSocket]) == 0 && !Clients[clientSocket].served)
         {
-            std::cout << "Response sent for socket: " << clientSocket << "\n";
             close(clientSocket);
             for (std::vector<pollfd>::iterator it = fds.begin(); it != fds.end();) {
                 if (it->fd == clientSocket)
@@ -290,12 +289,12 @@ int Server::sendResponse(int socket, Client& client)
     if (client.getSentOffset() < totalSize) {
         ssize_t sendResult = send(socket, client.getResponseBuffer().c_str() + client.getSentOffset(), totalSize - client.getSentOffset(), 0);
         if (sendResult == -1) {
-            std::cerr << "Error sending data\n";
+            // std::cerr << "Error sending data\n";
             close(socket);
             return -1;
         }
         client.incremetOffset(sendResult);
-        std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << " / " << client.getResponseBuffer().size() << "\n";
+        // std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << " / " << client.getResponseBuffer().size() << "\n";
         return 1;
     }
     return 0;
@@ -312,7 +311,7 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
     }
 
     buffer += requestBuffer.substr(0, pos + 4);
-    pos += 4; // Move past the end of headers
+    pos += 4;
 
     while (true)
     {
@@ -328,14 +327,12 @@ void Server::parseChunkedRequest(std::string& requestBuffer) {
 
         int chunkSize;
         std::istringstream(requestBuffer.substr(pos, chunkSizePos - pos)) >> std::hex >> chunkSize;
-        // std::cout << "length = " << chunkSizePos - pos << " size = " <<  chunkSize << "\n";
         if (chunkSize <= 0) {
-            // End of chunks
             break;
         }
 
         buffer += requestBuffer.substr(chunkSizePos + 2, chunkSize);
-        pos = chunkSizePos + 2 + chunkSize; // 2 for CRLF, additional 2 for next CRLF
+        pos = chunkSizePos + 2 + chunkSize;
         if (pos + 1 < requestBuffer.size() && requestBuffer[pos] == '\r' && requestBuffer[pos + 1] == '\n')
         {
             pos += 2;
