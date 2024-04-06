@@ -42,18 +42,13 @@ void Server::createServer(std::vector<DataConfig> config)
         {
             sockaddr_in address;
             std::memset(&address, 0, sizeof(address));
-            address.sin_family = AF_INET; // address family : ipv4
-            // address.sin_addr.s_addr = INADDR_ANY;
-            // address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // specify the IP address to which the server will bind
-            // std::cout << "host :" << config[i].getHost().c_str() << "\n";
-            // address.sin_addr.s_addr = inet_addr(config[i].getHost().c_str()); // specify the IP address to which the server will bind
+            address.sin_family = AF_INET;
             if (!strcmp(config[i].getHost().c_str(), "localhost"))
             {
                 address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             }
             else
             {
-                // Resolve host to its IP address
                 if (inet_pton(AF_INET, config[i].getHost().c_str(), &address.sin_addr) <= 0) {
                     // std::cerr << "Invalid address or address not supported\n";
                     return ;
@@ -66,7 +61,6 @@ void Server::createServer(std::vector<DataConfig> config)
  
     for (size_t i = 0; i < serverSockets.size(); i++)
     {
-        // std::cout << "BINDING before " << config[i].getHost() << ":" << ntohs(serverAddress[i].sin_port) << std::endl;
         int bindResult = bind(this->getServerSocket(i), reinterpret_cast<sockaddr*>(&(this->serverAddress[i])), sizeof(this->serverAddress[i]));
         if (bindResult == -1)
         {
@@ -74,7 +68,6 @@ void Server::createServer(std::vector<DataConfig> config)
             close(this->getServerSocket(i));
             this->serverSockets.erase(this->serverSockets.begin() + i);
             return ;
-            // exit(1);
         }
         std::cout << "[INFO] Server created : socket successfully binded with " << config[i].getHost() << ":" << ntohs(serverAddress[i].sin_port) << std::endl;
     }
@@ -178,14 +171,11 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
         {
             DataConfig configData = this->getServers()[clientSocket];
             Clients[clientSocket].getRequestBuffer().append(buffer, bytesRead);
-            // std::cout << RED << "request size = " << Clients[clientSocket].getRequestBuffer().size() << RESET << "\n";
-            // std::cout << "request buffer : |" << GREEN << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
             if (Clients[clientSocket].getRequestBuffer().find("Transfer-Encoding: chunked") != std::string::npos)
             {
                 if (Clients[clientSocket].getRequestBuffer().find("\r\n0") != std::string::npos)
                 {
                     this->parseChunkedRequest(Clients[clientSocket].getRequestBuffer());
-            // std::cout << "request buffer : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
                     Request req(Clients[clientSocket].getRequestBuffer());
                     Response response = req.handleRequest(configData);
                     Clients[clientSocket].setResponse(response.getResponseEntity());
@@ -207,9 +197,6 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
                         std::string body = request.substr(headerEnd + 4);
                         if (body.size() >= contentLength)
                         {
-                            // We've received the entire request
-                            std::cout << "request final : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
-                            // std::cout << "request size final : |" << RED << Clients[clientSocket].getRequestBuffer().size() << RESET << "|\n";
                             Request req(Clients[clientSocket].getRequestBuffer());
                             Response response = req.handleRequest(configData);
                             Clients[clientSocket].setResponse(response.getResponseEntity());
@@ -219,7 +206,6 @@ void    Server::handleClientInput(std::vector<pollfd>& fds, std::vector<pollfd>&
                     }
                     else
                     {
-                        // std::cout << "request buffer : |" << RED << Clients[clientSocket].getRequestBuffer() << RESET << "|\n";
                         Request req(Clients[clientSocket].getRequestBuffer());
                         Response response = req.handleRequest(configData);
                         Clients[clientSocket].setResponse(response.getResponseEntity());
@@ -283,7 +269,6 @@ void    Server::deliverResponseToClient(std::vector<pollfd>& fds, std::vector<po
 
 int Server::sendResponse(int socket, Client& client)
 {
-    // std::cerr << "response = "  << RED << client.getResponseBuffer() << RESET << "\n";
     size_t totalSize = client.getResponseBuffer().size();
 
     if (client.getSentOffset() < totalSize) {
@@ -294,7 +279,6 @@ int Server::sendResponse(int socket, Client& client)
             return -1;
         }
         client.incremetOffset(sendResult);
-        // std::cout << "socket = " << socket << "  ------ data sent : " << client.getSentOffset() << " / " << client.getResponseBuffer().size() << "\n";
         return 1;
     }
     return 0;

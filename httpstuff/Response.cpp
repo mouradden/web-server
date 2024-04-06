@@ -150,7 +150,6 @@ void Response::buildResponse(DataConfig &config, std::string location, unsigned 
         errorPageSs << config.getRoot() << "errorPages/" << code << ".html"; 
     }
 
-    std::cout << "path for error : " << code << " --> " << errorPageSs.str() << std::endl;
     std::ifstream file(errorPageSs.str().c_str());
     if (!file) {
         buildResponse(code);
