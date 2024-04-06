@@ -12,6 +12,11 @@ Request::Request(std::string buffer) {
     parseRequest(buffer, "\r\n");
     path = "";
     location = "";
+    // int delay = 0;
+    // while (delay < 1000000)
+    // {
+    //     delay++;
+    // }
 }
 
 Request::~Request() {
@@ -100,60 +105,27 @@ int Request::checkAllowedChars(std::string value) {
     return (0);
 }
 
-// void Request::parseRequest(std::string buffer, std::string delim) {
-//     std::vector<std::string> values;
-//     std::string line;
-//     size_t pos = 0;
-
-//     while ((pos = buffer.find(delim))!= std::string::npos) {
-//         if (buffer.compare(0, 4, delim, 0, 4) == 0) {
-//             values.push_back(delim);
-//             break ;
-//         }
-//         line = buffer.substr(0, pos);
-//         values.push_back(line);
-//         buffer.erase(0, pos + delim.size());
-//     }
-//     if (!buffer.empty()) {
-//         body = buffer;
-//         std::cout << "body equals == " << body << std::endl;
-//     }
-//     for (size_t i = 0; i < values.size() && values[i].compare(delim) != 0; i++) {
-//         if (i == 0) {
-//             // std::cout << "======> values |" << values[i] << "|\n";
-//             parseRequestLine(values[i]);
-//         } else {
-//             parseHeaders(values[i]);
-//         }
-//     }
-// }
 void Request::parseRequest(std::string buffer, std::string delim) {
     std::vector<std::string> headers;
     std::string line;
     size_t pos = 0;
 
-    // Find the body separator
     size_t bodyPos = buffer.find("\r\n\r\n");
     if (bodyPos != std::string::npos) {
-        // Separate the body from the buffer
         body = buffer.substr(bodyPos + 4);
-        // Remove the body from the buffer
         buffer.erase(bodyPos);
     }
 
-    // Parse the headers
     while ((pos = buffer.find(delim)) != std::string::npos) {
         line = buffer.substr(0, pos);
         headers.push_back(line);
         buffer.erase(0, pos + delim.size());
     }
 
-    // If there's any remaining header line, add it to the headers
     if (!buffer.empty()) {
         headers.push_back(buffer);
     }
 
-    // Parse the request line and headers
     for (size_t i = 0; i < headers.size(); i++) {
         if (i == 0) {
             parseRequestLine(headers[i]);
@@ -213,7 +185,6 @@ int Request::validateUri(DataConfig &config) {
     }
 
     buildPath(config);
-    // std::cout << "path built is " << path << std::endl;
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
         return (NOT_FOUND);
@@ -319,6 +290,7 @@ void    Request::checkWichServer()
 
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
+    // std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 

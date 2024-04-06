@@ -4,7 +4,7 @@ Client::Client()
 {
     this->sentOffset = 0;
     served = 0;
-    std::cout << "client created\n";
+    // std::cout << "client created\n";
 }
 void Client::setRequest(const std::string& req)
 {

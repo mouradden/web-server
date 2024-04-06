@@ -19,7 +19,7 @@
 #include <vector>
 #include <map>
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 2048
 
 enum statusCodes {
     // GET REQUEST SUCCESSFUL

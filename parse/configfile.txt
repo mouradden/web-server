@@ -9,7 +9,7 @@ server {
     host  127.0.0.1
     
 
-    root /Users/ahajji/Desktop/morad/
+    root /Users/mdenguir/Desktop/webserv5/
 
     #index index.html
     max_body_size   1000000000
@@ -18,12 +18,13 @@ server {
 
     location /image/ {
         index index.html
+        root /Users/ahajji/Desktop/morad/
+        index index.php
         methods GET POST
         cgi_extention   .php
         autoindex off
         error_page 404 /cgi/
         max_body_size   1000000000
-        upload /Users/ahajji/Desktop/morad/
     }
 
     location / {
