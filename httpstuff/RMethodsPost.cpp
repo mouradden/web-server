@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/03 00:00:05 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/06 01:07:34 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/06 01:49:31 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,10 @@ std::string getLastPart(const std::string& path) {
 int checkUpload(Request request)
 {
     if(request.getHeader("Content-Type").find("multipart/form-data; boundary=-") != std::string::npos)
+    {
+        std::cout << "exist ok\n";
         return 1;
+    }
     return 0;
 }
 struct FormData {
@@ -121,16 +124,14 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
     std::string line;
     std::string nameFile;
     CgiOutput  data;
-       std::cout << "hi ia m herrr si otan \n";
+
     if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->index.empty() == 0)
         nameFile = config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->index;
     path += nameFile;
     
-    std::cout << "hi ia m herrr si otan \n\n\n\n\n\n\n\n";
     std::vector<Location>::iterator it = config.getSpecificLocation(request.getLocation());
     if (it != config.getLocation().end() && config.getSpecificLocation(request.getLocation())->autoIndex == 1 && nameFile.empty())
     {
-        std::cout << "this isis is is " << path << std::endl;
         response.setStatus(200);
         response.setContentType("index.html");
         response.setContentLength(listFils(path).size());
@@ -150,6 +151,7 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
     if (pos != std::string::npos)
         extension = nameFile.substr(pos);
     std::string fileContent;
+   
     if (extension == ".php")
     {   
         if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->cgiExtension != "")
@@ -177,7 +179,7 @@ void  returnDefaultContentFile(Request& request, DataConfig config, std::string 
     }
     else
     {
-        if (checkUpload(request) && config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->upload.empty())
+        if (checkUpload(request) && config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->upload.empty() == 0)
             upload(request, config);
         fileContent = returnContentFile(path, response, request, config);
         if (fileContent == "error file")
@@ -203,7 +205,7 @@ void returnSpecificContentFile(std::string path, DataConfig config,Response& res
     {   
         if(config.getSpecificLocation(request.getLocation().empty() ? "/" : request.getLocation())->cgiExtension != "")
         {
-            data = Cgi::CallCgi(path, request, "/", config);
+            data = Cgi::CallCgi(path, request, "", config);
             if(data.getCgiError() == "error")
                 response.buildResponse(config, request.getLocation(),500);
             else if(data.getCgiError() == "time out")

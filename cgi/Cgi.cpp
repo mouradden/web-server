@@ -6,7 +6,7 @@
 /*   By: ahajji <ahajji@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 17:48:53 by ahajji            #+#    #+#             */
-/*   Updated: 2024/04/06 01:07:36 by ahajji           ###   ########.fr       */
+/*   Updated: 2024/04/06 02:14:24 by ahajji           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,6 @@ CgiOutput Cgi::CallCgi(std::string path, Request& request, std::string check, Da
     {
         DOCUMENT_ROOT = "DOCUMENT_ROOT=" + request.getPath();
         SCRIPT_FILENAME = "SCRIPT_FILENAME=" + path;
-        std::cout << "DOCUMENT_ROOT=" + request.getPath() << std::endl;
-        std::cout << "SCRIPT_FILENAME=" + path << std::endl;
     }
     else
     {
@@ -118,7 +116,7 @@ start = std::time(nullptr);
         return data;
     } else {
         int status;
-
+        
         while(1){
             std::time_t end = std::time(nullptr);
             if(end - start >= config.getSpecificLocation(request.getLocation())->cgiTime + 1)
@@ -131,6 +129,10 @@ start = std::time(nullptr);
                 break;
         }
         waitpid(pid, &status, 0);
+        for (size_t j = 0; j < i; ++j) {
+            delete[] arr[j];
+        }
+        delete[] arr;
         dup2(STDOUT_FILENO, out);
         
         std::ifstream file(outputFile.c_str(), std::ios::binary);
@@ -141,7 +143,6 @@ start = std::time(nullptr);
         
         std::map<std::string, std::string> header_s;
         size_t separator = result.find("\r\n\r\n");
-        std::cout << separator << "\n";
         if (separator != std::string::npos) {
             body = result.substr(separator + 4);
             std::string headers = result.substr(0, separator);

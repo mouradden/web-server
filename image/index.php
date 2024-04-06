@@ -20,21 +20,21 @@
     <h1><?php echo $_POST['email'] ?></h1>
 
     <?php
-        if(isset($_FILES['file'])){
-            echo "<h1>File name: " . $_FILES['file']['name'] . "</h1>";
-            $fileContent = $_FILES['file']['tmp_name'];
+        // if(isset($_FILES['file'])){
+        //     echo "<h1>File name: " . $_FILES['file']['name'] . "</h1>";
+        //     $fileContent = $_FILES['file']['tmp_name'];
           
-            $uploadDirectory = "/Users/ahajji/Desktop/morad/";
+        //     $uploadDirectory = "/Users/ahajji/Desktop/morad/";
 
           
-            $newFilePath = $uploadDirectory . basename($_FILES['file']['name']);
+        //     $newFilePath = $uploadDirectory . basename($_FILES['file']['name']);
 
-            if(move_uploaded_file($_FILES['file']['tmp_name'], $newFilePath)) {
-                echo "The file has been uploaded successfully.";
-            } else {
-                echo "There was an error uploading the file.";
-            }
-        }   
+        //     if(move_uploaded_file($_FILES['file']['tmp_name'], $newFilePath)) {
+        //         echo "The file has been uploaded successfully.";
+        //     } else {
+        //         echo "There was an error uploading the file.";
+        //     }
+        // }   
     ?>
 </body>
 </html>

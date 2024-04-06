@@ -179,11 +179,7 @@ void Response::buildResponseWithCgi(Response& response, DataConfig& config, Requ
     std::string location = request.getLocation().empty() ? "/" : request.getLocation();
     if (config.getSpecificLocation(location)->cgiExtension != "") {
         data = Cgi::CallCgi(path, request, "/", config);
-        std::cout <<"this is body " <<data.getBody() << std::endl;
-        std::cout  <<"this is location "<< data.getLocation() << std::endl;
-        std::cout  <<"this is error "<< data.getCgiError() << std::endl;
 
-        std::cout << "haahahaha this is body \n\n\n "<< data.getBody() << std::endl;
         if(data.getCgiError() == "error")
             response.buildResponse(config, location, INTERNAL_SERVER_ERROR);
         else if(data.getCgiError() == "time out")

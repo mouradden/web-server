@@ -12,11 +12,6 @@ Request::Request(std::string buffer) {
     parseRequest(buffer, "\r\n");
     path = "";
     location = "";
-    // int delay = 0;
-    // while (delay < 1000000)
-    // {
-    //     delay++;
-    // }
 }
 
 Request::~Request() {
@@ -174,8 +169,6 @@ void Request::buildPath(DataConfig &config) {
         this->queryString = path.substr(queryPos + 1);
         path.erase(queryPos);
     }
-    // std::cout << "location built is \"" << location << "\"" << std::endl;
-    std::cout << "path built is \"" << path << "\"" << std::endl;
 }
 
 int Request::validateUri(DataConfig &config) {
@@ -290,7 +283,6 @@ void    Request::checkWichServer()
 
 Response Request::runHttpMethod(DataConfig config) {
     Response response;
-    // std::cout <<"jsjsjsjsjsjsjsjsjsjsjjsjs       " <<this->body<< "kakakakakaka\n\n";
     if (requestMethod.compare("GET") == 0) {
         response = RequestMethod::GET(*this, config);
     } 
@@ -331,8 +323,6 @@ Response Request::handleRequest(DataConfig config) {
         return (response);
     }
     response = runHttpMethod(config);
-    // std::string green = "\033[1;32m";
-    // std::string reset = "\033[0m";
-    // std::cout << green << "********************************\n\n" << reset << response.getResponseEntity() << green << "********************************\n" << reset << std::endl;
+    
     return response;
 }
